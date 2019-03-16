@@ -375,6 +375,7 @@ my @disablables = (
     "fuzz-libfuzzer",
     "fuzz-afl",
     "gost",
+    "gost-grasshopper",
     "heartbeats",
     "idea",
     "makedepend",
