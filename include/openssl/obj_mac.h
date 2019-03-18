@@ -5238,3 +5238,7 @@
 #define SN_aes_256_siv          "AES-256-SIV"
 #define LN_aes_256_siv          "aes-256-siv"
 #define NID_aes_256_siv         1200
+
+#define SN_gost_grasshopper             "GHGOST"
+#define LN_gost_grasshopper             "gost-grasshopper"
+#define NID_gost_grasshopper            1205

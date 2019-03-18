@@ -2,7 +2,7 @@
 // Created by msnthrp on 16/03/19.
 //
 
-#include "internal/gost_grasshopper.h"
+#include <openssl/gost_grasshopper.h>
 
 void GHGOST_encrypt(const unsigned char *in, unsigned char *out,
                     const GHGOST_KEY *key) {

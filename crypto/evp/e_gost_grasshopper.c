@@ -1,10 +1,16 @@
 //
 // Created by msnthrp on 16/03/19.
 //
-# include <openssl/evp.h>
+#include <stdio.h>
+#include "internal/cryptlib.h"
 
+#ifndef OPENSSL_NO_GOST_GRASSHOPPER
+
+# include <openssl/evp.h>
 # include <openssl/objects.h>
 # include <openssl/gost_grasshopper.h>
+
+# include "internal/evp_int.h"
 
 typedef struct {
     GHGOST_KEY key;
@@ -49,10 +55,10 @@ static int gost_grasshopper_do_cipher(EVP_CIPHER_CTX *ctx, unsigned char *out,
                                       const unsigned char *in, size_t inl) {
     EVP_GHGOST_KEY *d = data(ctx);
     if (EVP_CIPHER_CTX_encrypting(ctx))
-        CRYPTO_cbc128_encrypt(in, out, len, &d->key,
+        CRYPTO_cbc128_encrypt(in, out, inl, &d->key,
                               EVP_CIPHER_CTX_iv_noconst(ctx), (block128_t) GHGOST_encrypt);
     else
-        CRYPTO_cbc128_decrypt(in, out, len, &d->key,
+        CRYPTO_cbc128_decrypt(in, out, inl, &d->key,
                               EVP_CIPHER_CTX_iv_noconst(ctx), (block128_t) GHGOST_decrypt);
     return 1;
 }
@@ -60,3 +66,4 @@ static int gost_grasshopper_do_cipher(EVP_CIPHER_CTX *ctx, unsigned char *out,
 const EVP_CIPHER *EVP_gost_grasshopper(void) {
     return (&gost_grasshopper_cipher);
 }
+#endif
