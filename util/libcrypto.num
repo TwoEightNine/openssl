@@ -4791,3 +4791,7 @@ OSSL_PARAM_set_octet_ptr                4738	3_0_0	EXIST::FUNCTION:
 X509_set_sm2_id                         4739	3_0_0	EXIST::FUNCTION:SM2
 X509_get0_sm2_id                        4740	3_0_0	EXIST::FUNCTION:SM2
 EVP_gost_grasshopper                    4741	3_0_0	EXIST::FUNCTION:GOST_GRASSHOPPER
+GHGOST_encrypt                          4742	3_0_0	EXIST::FUNCTION:
+GHGOST_decrypt                          4743	3_0_0	EXIST::FUNCTION:
+GHGOST_set_encrypt_key                  4744	3_0_0	EXIST::FUNCTION:
+GHGOST_set_decrypt_key                  4745	3_0_0	EXIST::FUNCTION:

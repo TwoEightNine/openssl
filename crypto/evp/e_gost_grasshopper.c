@@ -3,6 +3,7 @@
 //
 #include <stdio.h>
 #include "internal/cryptlib.h"
+#include <openssl/modes.h>
 
 #ifndef OPENSSL_NO_GOST_GRASSHOPPER
 
@@ -56,10 +57,10 @@ static int gost_grasshopper_do_cipher(EVP_CIPHER_CTX *ctx, unsigned char *out,
     EVP_GHGOST_KEY *d = data(ctx);
     if (EVP_CIPHER_CTX_encrypting(ctx))
         CRYPTO_cbc128_encrypt(in, out, inl, &d->key,
-                              EVP_CIPHER_CTX_iv_noconst(ctx), (block128_t) GHGOST_encrypt);
+                              EVP_CIPHER_CTX_iv_noconst(ctx), (block128_f) GHGOST_encrypt);
     else
         CRYPTO_cbc128_decrypt(in, out, inl, &d->key,
-                              EVP_CIPHER_CTX_iv_noconst(ctx), (block128_t) GHGOST_decrypt);
+                              EVP_CIPHER_CTX_iv_noconst(ctx), (block128_f) GHGOST_decrypt);
     return 1;
 }
 
