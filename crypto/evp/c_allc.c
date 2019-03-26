@@ -267,8 +267,8 @@ void openssl_add_all_ciphers_int(void)
     EVP_add_cipher(EVP_chacha20_poly1305());
 # endif
 
-# ifndef OPENSSL_NO_GOST_GRASSHOPPER
-    EVP_add_cipher(EVP_gost_grasshopper());
+# ifndef OPENSSL_NO_GHGOST
+    EVP_add_cipher(EVP_ghgost());
 # endif
 #endif
 }

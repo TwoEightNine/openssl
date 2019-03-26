@@ -2287,7 +2287,7 @@ static const ASN1_OBJECT nid_objs[NUM_NID] = {
     {"BLAKE2SMAC", "blake2smac", NID_blake2smac},
     {"SSHKDF", "sshkdf", NID_sshkdf},
     {"SM2-SM3", "SM2-with-SM3", NID_SM2_with_SM3, 8, &so[7766]},
-    {"GHGOST", "gost-grasshopper", NID_gost_grasshopper},
+    {"GHGOST", "ghgost", NID_ghgost},
 };
 
 #define NUM_SN 1197
@@ -3990,9 +3990,9 @@ static const unsigned int ln_objs[NUM_LN] = {
      631,    /* "generate cryptogram" */
      509,    /* "generationQualifier" */
      601,    /* "generic cryptogram" */
+    1205,    /* "ghgost" */
       99,    /* "givenName" */
     1195,    /* "gmac" */
-    1205,    /* "gost-grasshopper" */
      976,    /* "gost-mac-12" */
     1009,    /* "gost89-cbc" */
      814,    /* "gost89-cnt" */

@@ -944,8 +944,8 @@ const EVP_CIPHER *EVP_sm4_ofb(void);
 const EVP_CIPHER *EVP_sm4_ctr(void);
 # endif
 
-# ifndef OPENSSL_NO_GOST_GRASSHOPPER
-const EVP_CIPHER *EVP_gost_grasshopper(void);
+# ifndef OPENSSL_NO_GHGOST
+const EVP_CIPHER *EVP_ghgost(void);
 # endif
 
 # if !OPENSSL_API_1_1_0

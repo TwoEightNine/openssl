@@ -1,4 +1,4 @@
 LIBS=../../libcrypto
 SOURCE[../../libcrypto]=\
-        gost_grasshopper.c
+        ghgost.c
 

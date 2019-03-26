@@ -5,11 +5,11 @@
 #include "internal/cryptlib.h"
 #include <openssl/modes.h>
 
-#ifndef OPENSSL_NO_GOST_GRASSHOPPER
+#ifndef OPENSSL_NO_GHGOST
 
 # include <openssl/evp.h>
 # include <openssl/objects.h>
-# include <openssl/gost_grasshopper.h>
+# include <openssl/ghgost.h>
 
 # include "internal/evp_int.h"
 
@@ -19,18 +19,18 @@ typedef struct {
 
 # define data(ctx) ((EVP_GHGOST_KEY *)EVP_CIPHER_CTX_get_cipher_data(ctx))
 
-static int gost_grasshopper_init_key(EVP_CIPHER_CTX *ctx, const unsigned char *key,
+static int ghgost_init_key(EVP_CIPHER_CTX *ctx, const unsigned char *key,
                                      const unsigned char *iv, int enc);
 
-static int gost_grasshopper_do_cipher(EVP_CIPHER_CTX *ctx, unsigned char *out,
+static int ghgost_do_cipher(EVP_CIPHER_CTX *ctx, unsigned char *out,
                                       const unsigned char *in, size_t inl);
 
-static const EVP_CIPHER gost_grasshopper_cipher = {
-        NID_gost_grasshopper,
+static const EVP_CIPHER ghgost_cipher = {
+        NID_ghgost,
         1, 16, 0,
         EVP_CIPH_CBC_MODE,
-        gost_grasshopper_init_key,
-        gost_grasshopper_do_cipher,
+        ghgost_init_key,
+        ghgost_do_cipher,
         NULL,
         sizeof(EVP_GHGOST_KEY),
         NULL,
@@ -39,7 +39,7 @@ static const EVP_CIPHER gost_grasshopper_cipher = {
         NULL
 };
 
-static int gost_grasshopper_init_key(EVP_CIPHER_CTX *ctx, const unsigned char *key,
+static int ghgost_init_key(EVP_CIPHER_CTX *ctx, const unsigned char *key,
                                      const unsigned char *iv, int enc) {
     int ret;
     int mode = EVP_CIPHER_CTX_mode(ctx);
@@ -52,7 +52,7 @@ static int gost_grasshopper_init_key(EVP_CIPHER_CTX *ctx, const unsigned char *k
     return 1;
 }
 
-static int gost_grasshopper_do_cipher(EVP_CIPHER_CTX *ctx, unsigned char *out,
+static int ghgost_do_cipher(EVP_CIPHER_CTX *ctx, unsigned char *out,
                                       const unsigned char *in, size_t inl) {
     EVP_GHGOST_KEY *d = data(ctx);
     if (EVP_CIPHER_CTX_encrypting(ctx))
@@ -64,7 +64,7 @@ static int gost_grasshopper_do_cipher(EVP_CIPHER_CTX *ctx, unsigned char *out,
     return 1;
 }
 
-const EVP_CIPHER *EVP_gost_grasshopper(void) {
-    return (&gost_grasshopper_cipher);
+const EVP_CIPHER *EVP_ghgost(void) {
+    return (&ghgost_cipher);
 }
 #endif

@@ -156,7 +156,7 @@ foreach my $cmd (
     "des-cbc", "des-ede-cbc","des-ede3-cbc",
     "des-cfb", "des-ede-cfb","des-ede3-cfb",
     "des-ofb", "des-ede-ofb","des-ede3-ofb",
-    "gost-grasshopper",
+    "ghgost",
     "idea-cbc","idea-ecb", "idea-cfb", "idea-ofb",
     "seed-cbc","seed-ecb", "seed-cfb", "seed-ofb",
     "rc2-cbc", "rc2-ecb", "rc2-cfb","rc2-ofb", "rc2-64-cbc", "rc2-40-cbc",
