@@ -27,7 +27,9 @@ static int ghgost_do_cipher(EVP_CIPHER_CTX *ctx, unsigned char *out,
 
 static const EVP_CIPHER ghgost_cipher = {
         NID_ghgost,
-        1, 16, 0,
+        GHGOST_BLOCK_SIZE,
+        GHGOST_BLOCK_SIZE * 2,
+        GHGOST_BLOCK_SIZE,
         EVP_CIPH_CBC_MODE,
         ghgost_init_key,
         ghgost_do_cipher,

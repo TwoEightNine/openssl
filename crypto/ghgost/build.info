@@ -1,4 +1,3 @@
 LIBS=../../libcrypto
 SOURCE[../../libcrypto]=\
         ghgost.c
-
