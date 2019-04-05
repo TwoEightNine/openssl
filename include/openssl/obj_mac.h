@@ -5239,6 +5239,22 @@
 #define LN_aes_256_siv          "aes-256-siv"
 #define NID_aes_256_siv         1200
 
-#define SN_ghgost               "GHGOST"
-#define LN_ghgost               "ghgost"
-#define NID_ghgost              1205
+#define SN_ghgost_ecb           "GHGOST-ECB"
+#define LN_ghgost_ecb           "ghgost-ecb"
+#define NID_ghgost_ecb          1206
+
+#define SN_ghgost_cbc           "GHGOST-CBC"
+#define LN_ghgost_cbc           "ghgost-cbc"
+#define NID_ghgost_cbc          1207
+
+#define SN_ghgost_ofb           "GHGOST-OFB"
+#define LN_ghgost_ofb           "ghgost-ofb"
+#define NID_ghgost_ofb          1208
+
+#define SN_ghgost_cfb           "GHGOST-CFB"
+#define LN_ghgost_cfb           "ghgost-cfb"
+#define NID_ghgost_cfb          1209
+
+#define SN_ghgost_ctr           "GHGOST-CTR"
+#define LN_ghgost_ctr           "ghgost-ctr"
+#define NID_ghgost_ctr          1210

@@ -268,7 +268,11 @@ void openssl_add_all_ciphers_int(void)
 # endif
 
 # ifndef OPENSSL_NO_GHGOST
-    EVP_add_cipher(EVP_ghgost());
+    EVP_add_cipher(EVP_ghgost_ecb());
+    EVP_add_cipher(EVP_ghgost_cbc());
+    EVP_add_cipher(EVP_ghgost_ofb());
+    EVP_add_cipher(EVP_ghgost_cfb());
+    EVP_add_cipher(EVP_ghgost_ctr());
 # endif
 #endif
 }

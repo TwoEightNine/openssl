@@ -1080,7 +1080,7 @@ static const unsigned char so[7775] = {
     0x2A,0x81,0x1C,0xCF,0x55,0x01,0x83,0x75,       /* [ 7766] OBJ_SM2_with_SM3 */
 };
 
-#define NUM_NID 1206
+#define NUM_NID 1211
 static const ASN1_OBJECT nid_objs[NUM_NID] = {
     {"UNDEF", "undefined", NID_undef},
     {"rsadsi", "RSA Data Security, Inc.", NID_rsadsi, 6, &so[0]},
@@ -2287,10 +2287,15 @@ static const ASN1_OBJECT nid_objs[NUM_NID] = {
     {"BLAKE2SMAC", "blake2smac", NID_blake2smac},
     {"SSHKDF", "sshkdf", NID_sshkdf},
     {"SM2-SM3", "SM2-with-SM3", NID_SM2_with_SM3, 8, &so[7766]},
-    {"GHGOST", "ghgost", NID_ghgost},
+    { NULL, NULL, NID_undef },
+    {"GHGOST-ECB", "ghgost-ecb", NID_ghgost_ecb},
+    {"GHGOST-CBC", "ghgost-cbc", NID_ghgost_cbc},
+    {"GHGOST-OFB", "ghgost-ofb", NID_ghgost_ofb},
+    {"GHGOST-CFB", "ghgost-cfb", NID_ghgost_cfb},
+    {"GHGOST-CTR", "ghgost-ctr", NID_ghgost_ctr},
 };
 
-#define NUM_SN 1197
+#define NUM_SN 1201
 static const unsigned int sn_objs[NUM_SN] = {
      364,    /* "AD_DVCS" */
      419,    /* "AES-128-CBC" */
@@ -2442,7 +2447,11 @@ static const unsigned int sn_objs[NUM_SN] = {
      297,    /* "DVCS" */
     1087,    /* "ED25519" */
     1088,    /* "ED448" */
-    1205,    /* "GHGOST" */
+    1207,    /* "GHGOST-CBC" */
+    1209,    /* "GHGOST-CFB" */
+    1210,    /* "GHGOST-CTR" */
+    1206,    /* "GHGOST-ECB" */
+    1208,    /* "GHGOST-OFB" */
     1195,    /* "GMAC" */
       99,    /* "GN" */
     1036,    /* "HKDF" */
@@ -3491,7 +3500,7 @@ static const unsigned int sn_objs[NUM_SN] = {
     1093,    /* "x509ExtAdmission" */
 };
 
-#define NUM_LN 1197
+#define NUM_LN 1201
 static const unsigned int ln_objs[NUM_LN] = {
      363,    /* "AD Time Stamping" */
      405,    /* "ANSI X9.62" */
@@ -3990,7 +3999,11 @@ static const unsigned int ln_objs[NUM_LN] = {
      631,    /* "generate cryptogram" */
      509,    /* "generationQualifier" */
      601,    /* "generic cryptogram" */
-    1205,    /* "ghgost" */
+    1207,    /* "ghgost-cbc" */
+    1209,    /* "ghgost-cfb" */
+    1210,    /* "ghgost-ctr" */
+    1206,    /* "ghgost-ecb" */
+    1208,    /* "ghgost-ofb" */
       99,    /* "givenName" */
     1195,    /* "gmac" */
      976,    /* "gost-mac-12" */

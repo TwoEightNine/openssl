@@ -1203,3 +1203,8 @@ blake2smac		1202
 sshkdf		1203
 SM2_with_SM3		1204
 ghgost		1205
+ghgost_ecb		1206
+ghgost_cbc		1207
+ghgost_ofb		1208
+ghgost_cfb		1209
+ghgost_ctr		1210
