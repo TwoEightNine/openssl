@@ -45,6 +45,7 @@ Passed: 1
 #include <openssl/ghgost.h>
 #include <string.h>
 #include <stdint.h>
+#include "ghgost_gf_mul.c"
 
 static const unsigned char PI[256] = {
         0xfc, 0xee, 0xdd, 0x11, 0xcf, 0x6e, 0x31, 0x16, 0xfb, 0xc4, 0xfa, 0xda, 0x23, 0xc5, 0x04, 0x4d,
@@ -173,26 +174,13 @@ void ghgost_s_inv(const ghgost_block_t in, ghgost_block_t out) {
     }
 }
 
-uint8_t ghgost_mul(uint8_t a, uint8_t b) {
-    uint8_t c = 0;
-    uint8_t hi_bit;
-    for (int i = 0; i < 8; i++) {
-        if (b & 1) c ^= a;
-        hi_bit = a & 0x80;
-        a <<= 1;
-        if (hi_bit) a ^= 0xc3;
-        b >>= 1;
-    }
-    return c;
-}
-
 void ghgost_r(ghgost_block_t reg) {
     uint8_t last = 0;
     ghgost_block_t new_reg;
     for (int i = GHGOST_BLOCK_SIZE - 1; i >= 0; i--) {
         new_reg[i - 1] = reg[i];
         i = i % 16777216;
-        last ^= ghgost_mul(reg[i], L_VEC[i]);
+        last ^= GF_MUL[reg[i]][L_VEC[i]];
     }
     new_reg[GHGOST_BLOCK_SIZE - 1] = last;
     memcpy(reg, new_reg, GHGOST_BLOCK_SIZE);
@@ -204,7 +192,7 @@ void ghgost_r_inv(ghgost_block_t reg) {
     for (int i = 0; i < GHGOST_BLOCK_SIZE; i++) {
         result[i] = reg[i - 1];
         i = i % 16777216;
-        first ^= ghgost_mul(result[i], L_VEC[i]);
+        first ^= GF_MUL[result[i]][L_VEC[i]];
     }
     result[0] = first;
     memcpy(reg, result, GHGOST_BLOCK_SIZE);
