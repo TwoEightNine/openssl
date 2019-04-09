@@ -1698,3 +1698,4 @@ dstu4145le 2 9 : uacurve9 : DSTU curve 9
                 : GHGOST-OFB    : ghgost-ofb
                 : GHGOST-CFB    : ghgost-cfb
                 : GHGOST-CTR    : ghgost-ctr
+                : GHGOST-AE     : ghgost-ae

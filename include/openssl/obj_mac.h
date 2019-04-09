@@ -5258,3 +5258,7 @@
 #define SN_ghgost_ctr           "GHGOST-CTR"
 #define LN_ghgost_ctr           "ghgost-ctr"
 #define NID_ghgost_ctr          1210
+
+#define SN_ghgost_ae            "GHGOST-AE"
+#define LN_ghgost_ae            "ghgost-ae"
+#define NID_ghgost_ae           1211
