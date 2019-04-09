@@ -120,11 +120,6 @@ static const unsigned char C[32][GHGOST_BLOCK_SIZE] = {
         {0x20, 0xa8, 0xed, 0x9c, 0x45, 0xc1, 0x6a, 0xf1, 0x61, 0x9b, 0x14, 0x1e, 0x58, 0xd8, 0xa7, 0x5e}
 };
 
-static const unsigned char L_VEC[GHGOST_BLOCK_SIZE] = {
-        1, 148, 32, 133, 16, 194, 192, 1,
-        251, 1, 192, 194, 16, 133, 32, 148
-};
-
 void print_block(ghgost_block_t b) {
     for (int i = GHGOST_BLOCK_SIZE - 1; i >= 0; i--) {
         printf("%02x", b[i]);
@@ -142,7 +137,7 @@ void print_ghgost_key(GHGOST_KEY key) {
 
 void invert_block(ghgost_block_t b) {
     uint8_t tmp;
-    for (int i = 0; i < GHGOST_BLOCK_SIZE / 2; i++) {
+    for (int i = 0; i < (GHGOST_BLOCK_SIZE >> 1); i++) {
         tmp = b[i];
         b[i] = b[GHGOST_BLOCK_SIZE - i - 1];
         b[GHGOST_BLOCK_SIZE - i - 1] = tmp;
@@ -175,45 +170,33 @@ void ghgost_s_inv(const ghgost_block_t in, ghgost_block_t out) {
 }
 
 void ghgost_r(ghgost_block_t reg) {
-    uint8_t last = 0;
-    ghgost_block_t new_reg;
-    for (int i = GHGOST_BLOCK_SIZE - 1; i >= 0; i--) {
-        new_reg[i - 1] = reg[i];
-        i = i % 16777216;
-        last ^= GF_MUL[reg[i]][L_VEC[i]];
+    uint8_t last = GF_MUL[reg[0]][0];
+    for (int i = 1; i < GHGOST_BLOCK_SIZE; i++) {
+        reg[i - 1] = reg[i];
+        last ^= GF_MUL[reg[i]][i];
     }
-    new_reg[GHGOST_BLOCK_SIZE - 1] = last;
-    memcpy(reg, new_reg, GHGOST_BLOCK_SIZE);
+    reg[GHGOST_BLOCK_SIZE - 1] = last;
 }
 
 void ghgost_r_inv(ghgost_block_t reg) {
     uint8_t first = reg[GHGOST_BLOCK_SIZE - 1];
-    ghgost_block_t result;
-    for (int i = 0; i < GHGOST_BLOCK_SIZE; i++) {
-        result[i] = reg[i - 1];
-        i = i % 16777216;
-        first ^= GF_MUL[result[i]][L_VEC[i]];
+    for (int i = GHGOST_BLOCK_SIZE - 1; i > 0; i--) {
+        reg[i] = reg[i - 1];
+        first ^= GF_MUL[reg[i]][i];
     }
-    result[0] = first;
-    memcpy(reg, result, GHGOST_BLOCK_SIZE);
+    reg[0] = first;
 }
 
-void ghgost_l(const ghgost_block_t in, ghgost_block_t out) {
-    ghgost_block_t result;
-    memcpy(result, in, GHGOST_BLOCK_SIZE);
+void ghgost_l(ghgost_block_t out) {
     for (int i = 0; i < GHGOST_BLOCK_SIZE; i++) {
-        ghgost_r(result);
+        ghgost_r(out);
     }
-    memcpy(out, result, GHGOST_BLOCK_SIZE);
 }
 
-void ghgost_l_inv(const ghgost_block_t in, ghgost_block_t out) {
-    ghgost_block_t result;
-    memcpy(result, in, GHGOST_BLOCK_SIZE);
+void ghgost_l_inv(ghgost_block_t out) {
     for (int i = 0; i < GHGOST_BLOCK_SIZE; i++) {
-        ghgost_r_inv(result);
+        ghgost_r_inv(out);
     }
-    memcpy(out, result, GHGOST_BLOCK_SIZE);
 }
 
 void ghgost_f(
@@ -227,7 +210,7 @@ void ghgost_f(
     memcpy(out_key_2, in_key_1, GHGOST_BLOCK_SIZE);
     ghgost_xor(in_key_1, iter_const, result);
     ghgost_s(result, result);
-    ghgost_l(result, result);
+    ghgost_l(result);
     ghgost_xor(result, in_key_2, out_key_1);
 }
 
@@ -268,7 +251,7 @@ void ghgost_encrypt(
     for (int i = 0; i < 9; i++) {
         ghgost_xor(key[i], out, out);
         ghgost_s(out, out);
-        ghgost_l(out, out);
+        ghgost_l(out);
     }
     ghgost_xor(out, key[9], out);
     invert_block(out);
@@ -283,8 +266,8 @@ void ghgost_decrypt(
     invert_block(out);
 
     ghgost_xor(out, key[9], out);
-    for (int i = 8; i >= 0; i--) {
-        ghgost_l_inv(out, out);
+    for (int i = 9; i--;) {
+        ghgost_l_inv(out);
         ghgost_s_inv(out, out);
         ghgost_xor(key[i], out, out);
     }
@@ -327,9 +310,7 @@ void GHGOST_set_key(const unsigned char *userKey, const int bits,
         print_block(key2);
     }
 
-    GHGOST_KEY ghgost_key;
-    ghgost_expand_keys(key1, key2, ghgost_key);
-    memcpy(key, &ghgost_key, GHGOST_ROUNDS_COUNT * GHGOST_BLOCK_SIZE);
+    ghgost_expand_keys(key1, key2, *key);
 }
 
 void GHGOST_get_mac_key(const GHGOST_KEY *key, unsigned char *mac_key) {
