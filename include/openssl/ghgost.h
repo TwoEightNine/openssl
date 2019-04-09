@@ -25,10 +25,9 @@ void GHGOST_encrypt(const unsigned char *in, unsigned char *out,
 void GHGOST_decrypt(const unsigned char *in, unsigned char *out,
                     const GHGOST_KEY *key);
 
-int GHGOST_set_encrypt_key(const unsigned char *userKey, const int bits,
+void GHGOST_set_key(const unsigned char *userKey, const int bits,
                            GHGOST_KEY *key);
 
-int GHGOST_set_decrypt_key(const unsigned char *userKey, const int bits,
-                           GHGOST_KEY *key);
+void GHGOST_get_mac_key(const GHGOST_KEY *key, unsigned char *mac_key);
 
 #endif //OPENSSL_GHGOST_H

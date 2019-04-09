@@ -4793,10 +4793,12 @@ X509_get0_sm2_id                        4740	3_0_0	EXIST::FUNCTION:SM2
 EVP_ghgost                              4741	3_0_0	NOEXIST::FUNCTION:GHGOST
 GHGOST_encrypt                          4742	3_0_0	EXIST::FUNCTION:
 GHGOST_decrypt                          4743	3_0_0	EXIST::FUNCTION:
-GHGOST_set_encrypt_key                  4744	3_0_0	EXIST::FUNCTION:
-GHGOST_set_decrypt_key                  4745	3_0_0	EXIST::FUNCTION:
+GHGOST_set_encrypt_key                  4744	3_0_0	NOEXIST::FUNCTION:
+GHGOST_set_decrypt_key                  4745	3_0_0	NOEXIST::FUNCTION:
 EVP_ghgost_ecb                          4746	3_0_0	EXIST::FUNCTION:GHGOST
 EVP_ghgost_cbc                          4747	3_0_0	EXIST::FUNCTION:GHGOST
 EVP_ghgost_ofb                          4748	3_0_0	EXIST::FUNCTION:GHGOST
 EVP_ghgost_cfb                          4749	3_0_0	EXIST::FUNCTION:GHGOST
 EVP_ghgost_ctr                          4750	3_0_0	EXIST::FUNCTION:GHGOST
+GHGOST_set_key                          4751	3_0_0	EXIST::FUNCTION:
+GHGOST_get_mac_key                      4752	3_0_0	EXIST::FUNCTION:

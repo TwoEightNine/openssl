@@ -113,14 +113,10 @@ void print_ghgost_key_2(GHGOST_KEY key) {
 
 static int ghgost_init_key(EVP_CIPHER_CTX *ctx, const unsigned char *key,
                            const unsigned char *iv, int enc) {
-    int ret;
     EVP_GHGOST_KEY *d = data(ctx);
     GHGOST_KEY ghgost_key;
-    if (enc) {
-        ret = GHGOST_set_encrypt_key(key, EVP_CIPHER_CTX_key_length(ctx) * 8, ghgost_key);
-    } else {
-        ret = GHGOST_set_decrypt_key(key, EVP_CIPHER_CTX_key_length(ctx) * 8, ghgost_key);
-    }
+    GHGOST_set_key(key, EVP_CIPHER_CTX_key_length(ctx) * 8, ghgost_key);
+
     memcpy(d->key, ghgost_key, GHGOST_ROUNDS_COUNT * GHGOST_BLOCK_SIZE);
     return 1;
 }

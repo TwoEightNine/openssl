@@ -323,7 +323,7 @@ void GHGOST_decrypt(const unsigned char *in, unsigned char *out,
     ghgost_decrypt(in, out, *key);
 }
 
-int GHGOST_set_encrypt_key(const unsigned char *userKey, const int bits,
+void GHGOST_set_key(const unsigned char *userKey, const int bits,
                            GHGOST_KEY *key) {
 
     char key1[GHGOST_BLOCK_SIZE];
@@ -344,7 +344,12 @@ int GHGOST_set_encrypt_key(const unsigned char *userKey, const int bits,
     memcpy(key, &ghgost_key, GHGOST_ROUNDS_COUNT * GHGOST_BLOCK_SIZE);
 }
 
-int GHGOST_set_decrypt_key(const unsigned char *userKey, const int bits,
-                           GHGOST_KEY *key) {
-    GHGOST_set_encrypt_key(userKey, bits, key);
+void GHGOST_get_mac_key(const GHGOST_KEY *key, unsigned char *mac_key) {
+    ghgost_block_t in;
+    memset(in, 0, GHGOST_BLOCK_SIZE);
+
+    ghgost_block_t out;
+    GHGOST_encrypt(in, out, key);
+
+    memcpy(mac_key, &out, GHGOST_BLOCK_SIZE);
 }
