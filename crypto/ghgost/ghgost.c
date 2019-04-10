@@ -169,33 +169,30 @@ void ghgost_s_inv(const ghgost_block_t in, ghgost_block_t out) {
     }
 }
 
-void ghgost_r(ghgost_block_t reg) {
-    uint8_t last = GF_MUL[reg[0]][0];
-    for (int i = 1; i < GHGOST_BLOCK_SIZE; i++) {
-        reg[i - 1] = reg[i];
-        last ^= GF_MUL[reg[i]][i];
-    }
-    reg[GHGOST_BLOCK_SIZE - 1] = last;
-}
-
-void ghgost_r_inv(ghgost_block_t reg) {
-    uint8_t first = reg[GHGOST_BLOCK_SIZE - 1];
-    for (int i = GHGOST_BLOCK_SIZE - 1; i > 0; i--) {
-        reg[i] = reg[i - 1];
-        first ^= GF_MUL[reg[i]][i];
-    }
-    reg[0] = first;
-}
-
 void ghgost_l(ghgost_block_t out) {
-    for (int i = 0; i < GHGOST_BLOCK_SIZE; i++) {
-        ghgost_r(out);
+    int i = GHGOST_BLOCK_SIZE;
+    int j;
+    while (i--) {
+        uint8_t last = GF_MUL[out[0]][0];
+        for (j = 1; j < GHGOST_BLOCK_SIZE; j++) {
+            out[j - 1] = out[j];
+            last ^= GF_MUL[out[j]][j];
+        }
+        out[GHGOST_BLOCK_SIZE - 1] = last;
     }
 }
 
 void ghgost_l_inv(ghgost_block_t out) {
-    for (int i = 0; i < GHGOST_BLOCK_SIZE; i++) {
-        ghgost_r_inv(out);
+    int i = GHGOST_BLOCK_SIZE;
+    int j;
+    while (i--) {
+        uint8_t first = out[GHGOST_BLOCK_SIZE - 1];
+        j = GHGOST_BLOCK_SIZE;
+        while (--j) {
+            out[j] = out[j - 1];
+            first ^= GF_MUL[out[j]][j];
+        }
+        out[0] = first;
     }
 }
 
@@ -230,13 +227,18 @@ void ghgost_expand_keys(
     memcpy(it_1, key_1, GHGOST_BLOCK_SIZE);
     memcpy(it_2, key_2, GHGOST_BLOCK_SIZE);
 
-    for (int i = 0; i < 4; i++) {
-        for (int j = 0; j < 4; j++) {
-            ghgost_f(it_1, it_2, it_3, it_4, C[8 * i + 2 * j]);
-            ghgost_f(it_3, it_4, it_1, it_2, C[8 * i + 2 * j + 1]);
+    uint8_t f_mul = 0;
+    uint8_t k_mul = 2;
+    uint8_t i = 4;
+    uint8_t j;
+    while (i--) {
+        j = 4;
+        while (j--) {
+            ghgost_f(it_1, it_2, it_3, it_4, C[f_mul++]);
+            ghgost_f(it_3, it_4, it_1, it_2, C[f_mul++]);
         }
-        memcpy(key[2 * i + 2], it_1, GHGOST_BLOCK_SIZE);
-        memcpy(key[2 * i + 3], it_2, GHGOST_BLOCK_SIZE);
+        memcpy(key[k_mul++], it_1, GHGOST_BLOCK_SIZE);
+        memcpy(key[k_mul++], it_2, GHGOST_BLOCK_SIZE);
     }
 }
 
