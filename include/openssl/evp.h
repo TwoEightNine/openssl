@@ -951,6 +951,7 @@ const EVP_CIPHER *EVP_ghgost_ofb(void);
 const EVP_CIPHER *EVP_ghgost_cfb(void);
 const EVP_CIPHER *EVP_ghgost_ctr(void);
 const EVP_CIPHER *EVP_ghgost_ae(void);
+const EVP_CIPHER *EVP_ghgost_eax(void);
 # endif
 
 # if !OPENSSL_API_1_1_0

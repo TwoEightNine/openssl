@@ -5262,3 +5262,7 @@
 #define SN_ghgost_ae            "GHGOST-AE"
 #define LN_ghgost_ae            "ghgost-ae"
 #define NID_ghgost_ae           1211
+
+#define SN_ghgost_eax           "GHGOST-EAX"
+#define LN_ghgost_eax           "ghgost-eax"
+#define NID_ghgost_eax          1212

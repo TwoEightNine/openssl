@@ -26,6 +26,9 @@ static int ghgost_init_key(EVP_CIPHER_CTX *ctx, const unsigned char *key,
 static int ghgost_do_cipher(EVP_CIPHER_CTX *ctx, unsigned char *out,
                             const unsigned char *in, size_t inl);
 
+static int ghgost_do_eax_cipher(EVP_CIPHER_CTX *ctx, unsigned char *out,
+                            const unsigned char *in, size_t inl);
+
 static int ghgost_ctrl(EVP_CIPHER_CTX *ctx, int type, int arg, void *ptr);
 
 static int ghgost_sign(const unsigned char *data, const GHGOST_KEY *key,
@@ -116,6 +119,21 @@ static const EVP_CIPHER ghgost_ae = {
         NULL
 };
 
+static const EVP_CIPHER ghgost_eax = {
+        NID_ghgost_eax,
+        GHGOST_BLOCK_SIZE,
+        GHGOST_BLOCK_SIZE * 2,
+        GHGOST_BLOCK_SIZE,
+        EVP_CIPH_ECB_MODE | EVP_CIPH_FLAG_AEAD_CIPHER,
+        ghgost_init_key,
+        ghgost_do_eax_cipher,
+        NULL,
+        sizeof(EVP_GHGOST_KEY),
+        NULL, NULL,
+        ghgost_ctrl,
+        NULL
+};
+
 void print_block_2(ghgost_block_t b) {
     for (int i = GHGOST_BLOCK_SIZE - 1; i >= 0; i--) {
         printf("%02x", b[i]);
@@ -147,6 +165,7 @@ static int ghgost_do_cipher(EVP_CIPHER_CTX *ctx, unsigned char *out,
     int encr = EVP_CIPHER_CTX_encrypting(ctx);
     int num;
     int i;
+    printf("do cipher: %d, %d, %d\n", cipher_mode, aead, encr);
     switch (cipher_mode) {
 
         case EVP_CIPH_ECB_MODE:
@@ -212,6 +231,32 @@ static int ghgost_do_cipher(EVP_CIPHER_CTX *ctx, unsigned char *out,
         default:
             return 0;
     }
+}
+
+static int ghgost_do_eax_cipher(EVP_CIPHER_CTX *ctx, unsigned char *out,
+                            const unsigned char *in, size_t inl) {
+//    EVP_GHGOST_KEY *d = data(ctx);
+    int encr = EVP_CIPHER_CTX_encrypting(ctx);
+//    unsigned char h[16];
+//    memset(h, 0, 16);
+//    unsigned char tag[GHGOST_BLOCK_SIZE];
+//    printf("do eax cipher: %d\n", encr);
+//    if (encr) {
+//        CRYPTO_eax128_encrypt(EVP_CIPHER_CTX_iv(ctx), h,
+//                &d->key, in, tag, inl, out, (block128_f) GHGOST_encrypt);
+//        memcpy(EVP_CIPHER_CTX_buf_noconst(ctx), tag, GHGOST_BLOCK_SIZE);
+//    } else {
+//        CRYPTO_eax128_decrypt(EVP_CIPHER_CTX_iv(ctx), h,
+//                              &d->key, tag, in, inl, out, (block128_f) GHGOST_encrypt);
+//        if (memcmp(tag, EVP_CIPHER_CTX_buf_noconst(ctx), GHGOST_BLOCK_SIZE)) {
+//            return 0;
+//        }
+//    }
+    memcpy(out, in, inl);
+    if (encr) {
+        memcpy(EVP_CIPHER_CTX_buf_noconst(ctx), out, GHGOST_BLOCK_SIZE);
+    }
+    return 1;
 }
 
 static int ghgost_ctrl(EVP_CIPHER_CTX *ctx, int type, int arg, void *ptr) {
@@ -301,6 +346,10 @@ const EVP_CIPHER *EVP_ghgost_ctr(void) {
 
 const EVP_CIPHER *EVP_ghgost_ae(void) {
     return (&ghgost_ae);
+}
+
+const EVP_CIPHER *EVP_ghgost_eax(void) {
+    return (&ghgost_eax);
 }
 
 #endif

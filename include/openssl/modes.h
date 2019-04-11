@@ -202,6 +202,18 @@ int CRYPTO_ocb128_tag(OCB128_CONTEXT *ctx, unsigned char *tag, size_t len);
 void CRYPTO_ocb128_cleanup(OCB128_CONTEXT *ctx);
 # endif                          /* OPENSSL_NO_OCB */
 
+void CRYPTO_eax128_sign(const uint8_t *n, const uint8_t *h,
+                        const void *key, const uint8_t *cipher,
+                        uint8_t *tag, block128_f encrypt);
+
+void CRYPTO_eax128_encrypt(const uint8_t *n, const uint8_t *h,
+                           const void *key, const uint8_t *message, uint8_t len,
+                           uint8_t *out, uint8_t *tag, block128_f encrypt);
+
+int CRYPTO_eax128_decrypt(const uint8_t *n, const uint8_t *h,
+                          const void *key, const uint8_t *cipher, const uint8_t *tag,
+                          uint8_t len, uint8_t *out, block128_f encrypt);
+
 # ifndef OPENSSL_NO_SIV
 
 typedef struct siv128_context SIV128_CONTEXT;

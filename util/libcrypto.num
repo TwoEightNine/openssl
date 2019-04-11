@@ -4803,3 +4803,7 @@ EVP_ghgost_ctr                          4750	3_0_0	EXIST::FUNCTION:GHGOST
 GHGOST_set_key                          4751	3_0_0	EXIST::FUNCTION:
 GHGOST_get_mac_key                      4752	3_0_0	EXIST::FUNCTION:
 EVP_ghgost_ae                           4753	3_0_0	EXIST::FUNCTION:GHGOST
+EVP_ghgost_eax                          4754	3_0_0	EXIST::FUNCTION:GHGOST
+CRYPTO_eax128_sign                      4755	3_0_0	EXIST::FUNCTION:
+CRYPTO_eax128_encrypt                   4756	3_0_0	EXIST::FUNCTION:
+CRYPTO_eax128_decrypt                   4757	3_0_0	EXIST::FUNCTION:
