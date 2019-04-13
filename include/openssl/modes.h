@@ -203,7 +203,7 @@ void CRYPTO_ocb128_cleanup(OCB128_CONTEXT *ctx);
 # endif                          /* OPENSSL_NO_OCB */
 
 void CRYPTO_eax128_sign(const uint8_t *n, const uint8_t *h,
-                        const void *key, const uint8_t *cipher,
+                        const void *key, const uint8_t *cipher, uint8_t len,
                         uint8_t *tag, block128_f encrypt);
 
 void CRYPTO_eax128_encrypt(const uint8_t *n, const uint8_t *h,
