@@ -235,14 +235,14 @@ static int ghgost_do_eax_cipher(EVP_CIPHER_CTX *ctx, unsigned char *out,
                             const unsigned char *in, size_t inl) {
     EVP_GHGOST_KEY *d = data(ctx);
     int encr = EVP_CIPHER_CTX_encrypting(ctx);
-    unsigned char h[16];
-    memset(h, 0, 16);
+    unsigned char h[3];
+    memset(h, 0, 3);
     if (encr) {
-        CRYPTO_eax128_encrypt(EVP_CIPHER_CTX_iv(ctx), h,
+        CRYPTO_eax128_encrypt(EVP_CIPHER_CTX_iv(ctx), h, 3,
                 &d->key, in, inl, out,
                 EVP_CIPHER_CTX_buf_noconst(ctx), (block128_f) GHGOST_encrypt);
     } else {
-        return CRYPTO_eax128_decrypt(EVP_CIPHER_CTX_iv(ctx), h,
+        return CRYPTO_eax128_decrypt(EVP_CIPHER_CTX_iv(ctx), h, 3,
                               &d->key, in, EVP_CIPHER_CTX_buf_noconst(ctx),
                               inl, out, (block128_f) GHGOST_encrypt);
     }
@@ -281,6 +281,8 @@ static int ghgost_ctrl(EVP_CIPHER_CTX *ctx, int type, int arg, void *ptr) {
  * @param tag result
  * @param len length of @param data
  * @return tag for @param data
+ *
+ * block cipher calls: [len / BLOCK_SIZE] + 1
  */
 static int ghgost_sign(const unsigned char *data, const GHGOST_KEY *key,
         unsigned char *tag, size_t len) {

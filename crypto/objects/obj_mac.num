@@ -1210,3 +1210,4 @@ ghgost_cfb		1209
 ghgost_ctr		1210
 ghgost_ae		1211
 ghgost_eax		1212
+aes_128_eax		1213

@@ -1080,7 +1080,7 @@ static const unsigned char so[7775] = {
     0x2A,0x81,0x1C,0xCF,0x55,0x01,0x83,0x75,       /* [ 7766] OBJ_SM2_with_SM3 */
 };
 
-#define NUM_NID 1213
+#define NUM_NID 1214
 static const ASN1_OBJECT nid_objs[NUM_NID] = {
     {"UNDEF", "undefined", NID_undef},
     {"rsadsi", "RSA Data Security, Inc.", NID_rsadsi, 6, &so[0]},
@@ -2295,9 +2295,10 @@ static const ASN1_OBJECT nid_objs[NUM_NID] = {
     {"GHGOST-CTR", "ghgost-ctr", NID_ghgost_ctr},
     {"GHGOST-AE", "ghgost-ae", NID_ghgost_ae},
     {"GHGOST-EAX", "ghgost-eax", NID_ghgost_eax},
+    {"AES-128-EAX", "aes-128-eax", NID_aes_128_eax},
 };
 
-#define NUM_SN 1203
+#define NUM_SN 1204
 static const unsigned int sn_objs[NUM_SN] = {
      364,    /* "AD_DVCS" */
      419,    /* "AES-128-CBC" */
@@ -2307,6 +2308,7 @@ static const unsigned int sn_objs[NUM_SN] = {
      650,    /* "AES-128-CFB1" */
      653,    /* "AES-128-CFB8" */
      904,    /* "AES-128-CTR" */
+    1213,    /* "AES-128-EAX" */
      418,    /* "AES-128-ECB" */
      958,    /* "AES-128-OCB" */
      420,    /* "AES-128-OFB" */
@@ -3504,7 +3506,7 @@ static const unsigned int sn_objs[NUM_SN] = {
     1093,    /* "x509ExtAdmission" */
 };
 
-#define NUM_LN 1203
+#define NUM_LN 1204
 static const unsigned int ln_objs[NUM_LN] = {
      363,    /* "AD Time Stamping" */
      405,    /* "ANSI X9.62" */
@@ -3728,6 +3730,7 @@ static const unsigned int ln_objs[NUM_LN] = {
      650,    /* "aes-128-cfb1" */
      653,    /* "aes-128-cfb8" */
      904,    /* "aes-128-ctr" */
+    1213,    /* "aes-128-eax" */
      418,    /* "aes-128-ecb" */
      895,    /* "aes-128-gcm" */
      958,    /* "aes-128-ocb" */

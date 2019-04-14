@@ -953,6 +953,7 @@ const EVP_CIPHER *EVP_ghgost_ctr(void);
 const EVP_CIPHER *EVP_ghgost_ae(void);
 const EVP_CIPHER *EVP_ghgost_eax(void);
 # endif
+const EVP_CIPHER *EVP_aes_128_eax(void);
 
 # if !OPENSSL_API_1_1_0
 #  define OPENSSL_add_all_algorithms_conf() \

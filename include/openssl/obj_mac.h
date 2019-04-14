@@ -5266,3 +5266,7 @@
 #define SN_ghgost_eax           "GHGOST-EAX"
 #define LN_ghgost_eax           "ghgost-eax"
 #define NID_ghgost_eax          1212
+
+#define SN_aes_128_eax          "AES-128-EAX"
+#define LN_aes_128_eax          "aes-128-eax"
+#define NID_aes_128_eax         1213

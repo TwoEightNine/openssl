@@ -7,6 +7,7 @@
  * https://www.openssl.org/source/license.html
  */
 
+#include <stdio.h>
 #include <openssl/opensslconf.h>
 #include <openssl/crypto.h>
 #include <openssl/evp.h>
@@ -197,6 +198,11 @@ extern unsigned int OPENSSL_ia32cap_P[];
  * AES-NI section
  */
 # define AESNI_CAPABLE   (OPENSSL_ia32cap_P[1]&(1<<(57-32)))
+
+static int aes_eax_cipher(EVP_CIPHER_CTX *ctx, unsigned char *out,
+                          const unsigned char *in, size_t len);
+
+static int aes_eax_ctrl(EVP_CIPHER_CTX *ctx, int type, int arg, void *ptr);
 
 int aesni_set_encrypt_key(const unsigned char *userKey, int bits,
                           AES_KEY *key);
@@ -2720,6 +2726,67 @@ static int aes_cbc_cipher(EVP_CIPHER_CTX *ctx, unsigned char *out,
         CRYPTO_cbc128_decrypt(in, out, len, &dat->ks,
                               EVP_CIPHER_CTX_iv_noconst(ctx), dat->block);
 
+    return 1;
+}
+
+static const EVP_CIPHER aes_128_eax = {
+        NID_aes_128_eax,
+        16, 16, 16,
+        EVP_CIPH_CBC_MODE | EVP_CIPH_FLAG_AEAD_CIPHER,
+        aes_init_key,
+        aes_eax_cipher,
+        NULL,
+        sizeof(EVP_AES_KEY),
+        NULL,NULL,aes_eax_ctrl,NULL
+};
+
+const EVP_CIPHER *EVP_aes_128_eax(void) {
+    return &aes_128_eax;
+}
+
+static int aes_eax_cipher(EVP_CIPHER_CTX *ctx, unsigned char *out,
+                          const unsigned char *in, size_t len)
+{
+    EVP_AES_KEY *dat = EVP_C_DATA(EVP_AES_KEY,ctx);
+
+    int encr = EVP_CIPHER_CTX_encrypting(ctx);
+    unsigned char h[8] = {0x6B, 0xFB, 0x91, 0x4F, 0xD0, 0x7E, 0xAE, 0x6B};
+//    memset(h, 0, 8);
+    if (encr) {
+        CRYPTO_eax128_encrypt(EVP_CIPHER_CTX_iv(ctx), h, 8,
+                              &dat->ks, in, len, out,
+                              EVP_CIPHER_CTX_buf_noconst(ctx), dat->block);
+    } else {
+        return CRYPTO_eax128_decrypt(EVP_CIPHER_CTX_iv(ctx), h, 8,
+                                     &dat->ks, in, EVP_CIPHER_CTX_buf_noconst(ctx),
+                                     len, out, dat->block);
+    }
+
+    return 1;
+}
+
+static int aes_eax_ctrl(EVP_CIPHER_CTX *ctx, int type, int arg, void *ptr) {
+
+    switch (type) {
+
+        /**
+         * here we copy tag from #EVP_CIPHER_CTX_buf_noconst(ctx) into @param ptr
+         * so decryptor can check it
+         */
+        case EVP_CTRL_AEAD_SET_TAG:
+            if (arg != 16 || EVP_CIPHER_CTX_encrypting(ctx)) return 0;
+            memcpy(EVP_CIPHER_CTX_buf_noconst(ctx), ptr, arg);
+            break;
+
+            /**
+             * here we must put authentication tag into @param ptr
+             * so encryptor must put it into #EVP_CIPHER_CTX_buf_noconst(ctx)
+             */
+        case EVP_CTRL_AEAD_GET_TAG:
+            if (arg != 16 || !EVP_CIPHER_CTX_encrypting(ctx)) return 0;
+            memcpy(ptr, EVP_CIPHER_CTX_buf_noconst(ctx), arg);
+            break;
+    }
     return 1;
 }
 

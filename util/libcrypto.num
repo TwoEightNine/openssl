@@ -4807,3 +4807,4 @@ EVP_ghgost_eax                          4754	3_0_0	EXIST::FUNCTION:GHGOST
 CRYPTO_eax128_sign                      4755	3_0_0	EXIST::FUNCTION:
 CRYPTO_eax128_encrypt                   4756	3_0_0	EXIST::FUNCTION:
 CRYPTO_eax128_decrypt                   4757	3_0_0	EXIST::FUNCTION:
+EVP_aes_128_eax                         4758	3_0_0	EXIST::FUNCTION:

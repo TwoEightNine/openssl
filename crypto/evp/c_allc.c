@@ -276,5 +276,6 @@ void openssl_add_all_ciphers_int(void)
     EVP_add_cipher(EVP_ghgost_ae());
     EVP_add_cipher(EVP_ghgost_eax());
 # endif
+    EVP_add_cipher(EVP_aes_128_eax());
 #endif
 }

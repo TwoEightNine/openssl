@@ -137,6 +137,7 @@ foreach my $cmd (
     "aes-128-cbc", "aes-128-ecb",
     "aes-192-cbc", "aes-192-ecb",
     "aes-256-cbc", "aes-256-ecb",
+    "aes-128-eax",
     "aria-128-cbc", "aria-128-cfb",
     "aria-128-ctr", "aria-128-ecb", "aria-128-ofb",
     "aria-128-cfb1", "aria-128-cfb8",
