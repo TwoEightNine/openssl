@@ -4808,3 +4808,6 @@ CRYPTO_eax128_sign                      4755	3_0_0	EXIST::FUNCTION:
 CRYPTO_eax128_encrypt                   4756	3_0_0	EXIST::FUNCTION:
 CRYPTO_eax128_decrypt                   4757	3_0_0	EXIST::FUNCTION:
 EVP_aes_128_eax                         4758	3_0_0	EXIST::FUNCTION:
+EVP_aegis_128l                          4759	3_0_0	EXIST::FUNCTION:AEGIS
+AEGIS_encrypt                           4760	3_0_0	EXIST::FUNCTION:
+AEGIS_decrypt                           4761	3_0_0	EXIST::FUNCTION:

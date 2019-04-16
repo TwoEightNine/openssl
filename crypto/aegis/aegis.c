@@ -10,17 +10,6 @@
 
 #define STATE_128_COUNT 8 // 8 * 128 bit = 1024 bit
 
-#define UPDSTATE(state, m_a, m_b) \
-    __m128i tmp = _mm_aesenc_si128(state[7], _mm_xor_si128(state[0], m_a)); \
-    state[7] = _mm_aesenc_si128(state[6], state[7]); \
-    state[6] = _mm_aesenc_si128(state[5], state[6]); \
-    state[5] = _mm_aesenc_si128(state[4], state[5]); \
-    state[4] = _mm_aesenc_si128(state[3], _mm_xor_si128(state[4], m_b)); \
-    state[3] = _mm_aesenc_si128(state[2], state[3]); \
-    state[2] = _mm_aesenc_si128(state[1], state[2]); \
-    state[1] = _mm_aesenc_si128(state[0], state[1]); \
-    state[0] = tmp;
-
 static const uint8_t CONST[32] = {
         0x00, 0x01, 0x01, 0x02, 0x03, 0x05, 0x08, 0x0d, 0x15, 0x22, 0x37, 0x59, 0x90, 0xe9, 0x79, 0x62,
         0xdb, 0x3d, 0x18, 0x55, 0x6d, 0xc2, 0x2f, 0xf1, 0x20, 0x11, 0x31, 0x42, 0x73, 0xb5, 0x28, 0xdd
@@ -34,6 +23,18 @@ __m128i xor_state_0(__m128i *state, uint8_t *state_out) {
 __m128i xor_state_1(__m128i *state, uint8_t *state_out) {
     __m128i xor_state = _mm_xor_si128(state[2], _mm_xor_si128(state[5], _mm_and_si128(state[6], state[7])));
     memcpy(state_out, &xor_state, 16);
+}
+
+void update_state(__m128i *state, __m128i m_a, __m128i m_b) {
+    __m128i tmp = _mm_aesenc_si128(state[7], _mm_xor_si128(state[0], m_a));
+    state[7] = _mm_aesenc_si128(state[6], state[7]);
+    state[6] = _mm_aesenc_si128(state[5], state[6]);
+    state[5] = _mm_aesenc_si128(state[4], state[5]);
+    state[4] = _mm_aesenc_si128(state[3], _mm_xor_si128(state[4], m_b));
+    state[3] = _mm_aesenc_si128(state[2], state[3]);
+    state[2] = _mm_aesenc_si128(state[1], state[2]);
+    state[1] = _mm_aesenc_si128(state[0], state[1]);
+    state[0] = tmp;
 }
 
 void init_state(__m128i *state, __m128i key, __m128i iv) {
@@ -54,7 +55,7 @@ void init_state(__m128i *state, __m128i key, __m128i iv) {
 
     uint8_t i = 10;
     while (i--) {
-        UPDSTATE(state, iv, key);
+        update_state(state, iv, key);
     }
 }
 
@@ -62,7 +63,7 @@ void process_ad(__m128i *state, const uint8_t *ad, size_t len) {
     size_t l = 0;
     size_t full_block_len = (len >> 5) << 5;
     while (l != full_block_len) {
-        UPDSTATE(state,
+        update_state(state,
                  _mm_loadu_si128((__m128i *) (ad + l)),
                  _mm_loadu_si128((__m128i *) (ad + l + 16))
         );
@@ -73,7 +74,7 @@ void process_ad(__m128i *state, const uint8_t *ad, size_t len) {
         uint8_t last_block[32];
         memcpy(last_block, ad + full_block_len, diff);
         memset(last_block + diff, 0, 32 - diff);
-        UPDSTATE(state,
+        update_state(state,
                  _mm_loadu_si128((__m128i *) last_block),
                  _mm_loadu_si128((__m128i *) (last_block + 16))
         );
@@ -95,7 +96,7 @@ void encrypt(__m128i *state, const uint8_t *plain, size_t plain_len, uint8_t *ci
             cipher[l + i] = plain[l + i] ^ state_0[i];
             cipher[l + i + 16] = plain[l + i + 16] ^ state_1[i];
         }
-        UPDSTATE(state,
+        update_state(state,
                  _mm_loadu_si128((__m128i *) (plain + l)),
                  _mm_loadu_si128((__m128i *) (plain + l + 16))
         );
@@ -115,7 +116,7 @@ void encrypt(__m128i *state, const uint8_t *plain, size_t plain_len, uint8_t *ci
             cipher[l + i + 16] = last_block[i + 16] ^ state_1[i];
         }
 
-        UPDSTATE(state,
+        update_state(state,
                  _mm_loadu_si128((__m128i *) last_block),
                  _mm_loadu_si128((__m128i *) (last_block + 16))
         );
@@ -137,7 +138,7 @@ void decrypt(__m128i *state, const uint8_t *cipher, size_t cipher_len, uint8_t *
             plain[l + i] = cipher[l + i] ^ state_0[i];
             plain[l + i + 16] = cipher[l + i + 16] ^ state_1[i];
         }
-        UPDSTATE(state,
+        update_state(state,
                  _mm_loadu_si128((__m128i *) (plain + l)),
                  _mm_loadu_si128((__m128i *) (plain + l + 16))
         );
@@ -158,7 +159,7 @@ void decrypt(__m128i *state, const uint8_t *cipher, size_t cipher_len, uint8_t *
         }
         memset(plain + l + diff, 0, 32 - diff);
 
-        UPDSTATE(state,
+        update_state(state,
                  _mm_loadu_si128((__m128i *) (plain + l)),
                  _mm_loadu_si128((__m128i *) (plain + l + 16))
         );
@@ -178,7 +179,7 @@ void finalize(__m128i *state, uint64_t ad_len, uint64_t plain_len, uint8_t *tag)
     uint8_t i;
     i = 7;
     while (i--) {
-        UPDSTATE(state, msgtmp, msgtmp);
+        update_state(state, msgtmp, msgtmp);
     }
 
     uint8_t j;
@@ -210,6 +211,7 @@ void AEGIS_encrypt(const uint8_t *key, const uint8_t *iv,
                    const uint8_t *msg, size_t msglen,
                    const uint8_t *ad, size_t adlen,
                    uint8_t *cipher, uint8_t *tag) {
+    __m128i state[STATE_128_COUNT];
     init_state(state, _mm_loadu_si128((__m128i *) key), _mm_loadu_si128((__m128i *) iv));
     process_ad(state, ad, adlen);
     encrypt(state, msg, msglen, cipher);
@@ -234,6 +236,7 @@ int AEGIS_decrypt(const uint8_t *key, const uint8_t *iv,
                   const uint8_t *cipher, size_t cipherlen,
                   const uint8_t *ad, size_t adlen,
                   const uint8_t *tag, uint8_t *msg) {
+    __m128i state[STATE_128_COUNT];
     init_state(state, _mm_loadu_si128((__m128i *) key), _mm_loadu_si128((__m128i *) iv));
     process_ad(state, ad, adlen);
     decrypt(state, cipher, cipherlen, msg);

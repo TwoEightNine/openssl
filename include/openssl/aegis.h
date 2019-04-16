@@ -5,6 +5,9 @@
 #ifndef OPENSSL_AEGIS_H
 #define OPENSSL_AEGIS_H
 
+# include <stdint.h>
+# include <stdlib.h>
+
 /**
  * encrypt using AEGIS-128L
  * INPUT:

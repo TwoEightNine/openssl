@@ -134,6 +134,7 @@ my %cipher_disabler = (
     cast5 => "cast",
 );
 foreach my $cmd (
+    "aegis-128l",
     "aes-128-cbc", "aes-128-ecb",
     "aes-192-cbc", "aes-192-ecb",
     "aes-256-cbc", "aes-256-ecb",
