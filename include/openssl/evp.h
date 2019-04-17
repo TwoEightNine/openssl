@@ -956,7 +956,9 @@ const EVP_CIPHER *EVP_ghgost_eax(void);
 const EVP_CIPHER *EVP_aes_128_eax(void);
 
 # ifndef OPENSSL_NO_AEGIS
+const EVP_CIPHER *EVP_aegis_128(void);
 const EVP_CIPHER *EVP_aegis_128l(void);
+const EVP_CIPHER *EVP_aegis_256(void);
 # endif
 
 # if !OPENSSL_API_1_1_0

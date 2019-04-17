@@ -5271,6 +5271,14 @@
 #define LN_aes_128_eax          "aes-128-eax"
 #define NID_aes_128_eax         1213
 
+#define SN_aegis_128            "AEGIS-128"
+#define LN_aegis_128            "aegis-128"
+#define NID_aegis_128           1215
+
 #define SN_aegis_128l           "AEGIS-128L"
 #define LN_aegis_128l           "aegis-128l"
 #define NID_aegis_128l          1214
+
+#define SN_aegis_256            "AEGIS-256"
+#define LN_aegis_256            "aegis-256"
+#define NID_aegis_256           1216

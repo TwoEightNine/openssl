@@ -278,7 +278,9 @@ void openssl_add_all_ciphers_int(void)
 # endif
     EVP_add_cipher(EVP_aes_128_eax());
 # ifndef OPENSSL_NO_AEGIS
+    EVP_add_cipher(EVP_aegis_128());
     EVP_add_cipher(EVP_aegis_128l());
+    EVP_add_cipher(EVP_aegis_256());
 # endif
 #endif
 }
