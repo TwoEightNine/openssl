@@ -507,7 +507,7 @@ void finalize_256(__m128i *state, uint64_t ad_len, uint64_t plain_len, uint8_t *
 void AEGIS_128_encrypt(const uint8_t *key, const uint8_t *iv,
                    const uint8_t *msg, size_t msglen,
                    const uint8_t *ad, size_t adlen,
-                   uint8_t *cipher, uint8_t *tag) {
+                   uint8_t *tag, uint8_t *cipher) {
     __m128i state[5];
     init_state_128(state, _mm_loadu_si128((__m128i *) key), _mm_loadu_si128((__m128i *) iv));
     process_ad_128(state, ad, adlen);

@@ -111,7 +111,7 @@ static int aegis_do_cipher_128(EVP_CIPHER_CTX *ctx, unsigned char *out,
 //    uint8_t ad[0];
     if (encr) {
         AEGIS_128_encrypt(&d->key, &d->iv, in, inl,
-                          NULL, 0, out, EVP_CIPHER_CTX_buf_noconst(ctx));
+                          NULL, 0, EVP_CIPHER_CTX_buf_noconst(ctx), out);
         return 1;
     } else {
         return AEGIS_128_decrypt(&d->key, &d->iv, in, inl,
@@ -138,20 +138,19 @@ static int aegis_do_cipher_256(EVP_CIPHER_CTX *ctx, unsigned char *out,
                                const unsigned char *in, size_t inl) {
     EVP_AEGIS_KEY *d = data(ctx);
     int encr = EVP_CIPHER_CTX_encrypting(ctx);
-    printf("aegis-256, encr = %d\n", encr);
 //    uint8_t ad[0];
     if (encr) {
         AEGIS_256_encrypt(&d->key, &d->iv, in, inl,
-                          NULL, 0, out, EVP_CIPHER_CTX_buf_noconst(ctx));
+                          NULL, 0, EVP_CIPHER_CTX_buf_noconst(ctx), out);
         return 1;
     } else {
-        return AEGIS_256_decrypt(&d->key, &d->iv, in, inl,
-                                 NULL, 0, EVP_CIPHER_CTX_buf_noconst(ctx), out);
+        AEGIS_256_decrypt(&d->key, &d->iv, in, inl,
+                          NULL, 0, EVP_CIPHER_CTX_buf_noconst(ctx), out);
+        return 1;
     }
 }
 
 static int aegis_ctrl(EVP_CIPHER_CTX *ctx, int type, int arg, void *ptr) {
-    printf("type = %d, arg = %d\n", type, arg);
     switch (type) {
 
         /**
