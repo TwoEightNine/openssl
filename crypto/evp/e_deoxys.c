@@ -42,7 +42,7 @@ static const EVP_CIPHER deoxys = {
         NULL
 };
 
-const EVP_CIPHER *EVP_deoxys(void) {
+const EVP_CIPHER *EVP_deoxys_128(void) {
     return &deoxys;
 }
 
@@ -60,11 +60,11 @@ static int deoxys_do_cipher(EVP_CIPHER_CTX *ctx, unsigned char *out,
 //    uint8_t ad[0];
     if (encr) {
         DEOXYS_encrypt(NULL, 0, in, inl,
-                &d->key, &d->iv, EVP_CIPHER_CTX_buf_noconst(ctx), out);
+                &d->key, &d->nonce, EVP_CIPHER_CTX_buf_noconst(ctx), out);
         return 1;
     } else {
         return DEOXYS_decrypt(NULL, 0, in, inl,
-                              &d->key, &d->iv, EVP_CIPHER_CTX_buf_noconst(ctx), out);
+                              &d->key, &d->nonce, EVP_CIPHER_CTX_buf_noconst(ctx), out);
     }
 }
 
