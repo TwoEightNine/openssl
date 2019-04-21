@@ -282,5 +282,8 @@ void openssl_add_all_ciphers_int(void)
     EVP_add_cipher(EVP_aegis_128l());
     EVP_add_cipher(EVP_aegis_256());
 # endif
+# ifndef OPENSSL_NO_DEOXYS
+    EVP_add_cipher(EVP_deoxys_128());
+# endif
 #endif
 }

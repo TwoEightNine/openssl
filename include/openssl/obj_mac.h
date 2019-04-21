@@ -5282,3 +5282,7 @@
 #define SN_aegis_256            "AEGIS-256"
 #define LN_aegis_256            "aegis-256"
 #define NID_aegis_256           1216
+
+#define SN_deoxys_128           "DEOXYS-128"
+#define LN_deoxys_128           "deoxys-128"
+#define NID_deoxys_128          1217

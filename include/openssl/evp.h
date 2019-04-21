@@ -961,6 +961,10 @@ const EVP_CIPHER *EVP_aegis_128l(void);
 const EVP_CIPHER *EVP_aegis_256(void);
 # endif
 
+# ifndef OPENSSL_NO_DEOXYS
+const EVP_CIPHER *EVP_deoxys_128(void);
+# endif
+
 # if !OPENSSL_API_1_1_0
 #  define OPENSSL_add_all_algorithms_conf() \
     OPENSSL_init_crypto(OPENSSL_INIT_ADD_ALL_CIPHERS \

@@ -152,6 +152,7 @@ foreach my $cmd (
     "camellia-192-cbc", "camellia-192-ecb",
     "camellia-256-cbc", "camellia-256-ecb",
     "base64", "zlib",
+    "deoxys-128",
     "des", "des3", "desx", "idea", "seed", "rc4", "rc4-40",
     "rc2", "bf", "cast", "rc5",
     "des-ecb", "des-ede", "des-ede3",
