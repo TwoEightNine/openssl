@@ -4818,3 +4818,4 @@ AEGIS_128_decrypt                       4765	3_0_0	EXIST::FUNCTION:
 EVP_aegis_128                           4766	3_0_0	EXIST::FUNCTION:AEGIS
 EVP_aegis_256                           4767	3_0_0	EXIST::FUNCTION:AEGIS
 EVP_deoxys_128                          4768	3_0_0	EXIST::FUNCTION:DEOXYS
+EVP_deoxys_256                          4769	3_0_0	EXIST::FUNCTION:DEOXYS

@@ -963,6 +963,7 @@ const EVP_CIPHER *EVP_aegis_256(void);
 
 # ifndef OPENSSL_NO_DEOXYS
 const EVP_CIPHER *EVP_deoxys_128(void);
+const EVP_CIPHER *EVP_deoxys_256(void);
 # endif
 
 # if !OPENSSL_API_1_1_0

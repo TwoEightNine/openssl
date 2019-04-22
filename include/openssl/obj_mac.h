@@ -5286,3 +5286,7 @@
 #define SN_deoxys_128           "DEOXYS-128"
 #define LN_deoxys_128           "deoxys-128"
 #define NID_deoxys_128          1217
+
+#define SN_deoxys_256           "DEOXYS-256"
+#define LN_deoxys_256           "deoxys-256"
+#define NID_deoxys_256          1218

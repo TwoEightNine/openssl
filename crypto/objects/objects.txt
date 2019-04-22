@@ -1705,3 +1705,4 @@ dstu4145le 2 9 : uacurve9 : DSTU curve 9
 		        : AEGIS-128L	: aegis-128l
 		        : AEGIS-256 	: aegis-256
 		        : DEOXYS-128 	: deoxys-128
+		        : DEOXYS-256 	: deoxys-256

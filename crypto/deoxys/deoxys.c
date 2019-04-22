@@ -37,11 +37,11 @@
 #define MSB_CHKSUM_FULL       (0x1<<4)
 #define MSB_CHKSUM_NON_FULL   (0x5<<4)
 
-/* Number of bits in the TWEAKEY state (256 or 384) */
-#define TWEAKEY_STATE_SIZE    256
+/* Key size: 16 or 32 */
+#define KEY_SIZE               16
 
 /**********************************************************************************
-*** In Deoxys=/=-128-128, the tweak is on 128 bits:
+*** the tweak is on 128 bits:
 ***     tweak = <stage> || <nonce> || <blockNumber>
 ***  where we use:
 ***      4 bits for stage
@@ -91,78 +91,44 @@ static void set_stage_in_tweak(uint8_t *tweak, const uint8_t value) {
 ** In the case of Deoxys-BC-384, the tweakey word is composed of KEY_2 || KEY_1 || TWEAK.
 */
 static void set_tweak_in_tweakey(uint8_t *tweakey, uint8_t *tweak) {
-#if TWEAKEY_STATE_SIZE == 256
-    memcpy(tweakey + 16, tweak, 16);
-#elif TWEAKEY_STATE_SIZE == 384
-    memcpy(tweakey+32, tweak, 16);
-#endif
-}
-
-/*
-** Constant-time memcmp function
-*/
-static int memcmp_const(const void *a, const void *b, const size_t size) {
-
-    size_t i;
-    unsigned char result = 0;
-    const unsigned char *_a = (const unsigned char *) a;
-    const unsigned char *_b = (const unsigned char *) b;
-
-    for (i = 0; i < size; i++) {
-        result |= _a[i] ^ _b[i];
-    }
-
-    /* returns 0 if equal, nonzero otherwise */
-    return result;
+    memcpy(tweakey + KEY_SIZE, tweak, 16);
 }
 
 /*
 ** XOR an input block to another input block
 */
 static void xor_values(uint8_t *v1, const uint8_t *v2) {
-    int i;
-    for (i = 0; i < 16; i++) v1[i] ^= v2[i];
+    uint8_t i = 16;
+    while (i--) v1[i] ^= v2[i];
 }
 
-/**
- * encrypt and sign message
- * INPUT:
- * @param ass_data, len = @param ass_data_len
- * @param ass_data_len
- * @param message, len = @param m_len
- * @param m_len
- * @param key, len = 16
- * @param nonce, len = 16
- * OUTPUT:
- * @param tag, len = 16
- * @param ciphertext, len = @param ciphertext
- */
-void DEOXYS_encrypt(const uint8_t *ass_data, size_t ass_data_len,
-                         const uint8_t *message, size_t m_len,
-                         const uint8_t *key, const uint8_t *nonce,
-                         uint8_t *tag, uint8_t *ciphertext) {
+void deoxys_encrypt(const uint8_t tweakey_size,
+                    const uint8_t *ass_data, size_t ass_data_len,
+                    const uint8_t *message, size_t m_len,
+                    const uint8_t *key, const uint8_t *nonce,
+                    uint8_t *tag, uint8_t *ciphertext) {
 
     uint64_t i;
     uint64_t j;
     uint8_t tweak[16];
-    uint8_t tweakey[TWEAKEY_STATE_SIZE / 8];
-    uint8_t Auth[16];
+    uint8_t *tweakey = (uint8_t *) malloc(tweakey_size);
+    uint8_t auth[16];
     uint8_t last_block[16];
-    uint8_t Checksum[16];
-    uint8_t Final[16];
+    uint8_t checksum[16];
+    uint8_t final[16];
     uint8_t zero_block[16];
     uint8_t Pad[16];
     uint8_t temp[16];
 
 
     /* Fill the tweak with zeros (no nonce !!!) */
-    memset(tweak, 0, sizeof(tweak));
+    memset(tweak, 0, 16);
 
     /* Fill the key(s) in the tweakey state */
-    memcpy(tweakey, key, 16);
+    memcpy(tweakey, key, tweakey_size - 16);
 
     /* Associated data */
-    memset(Auth, 0, 16);
+    memset(auth, 0, 16);
 
     if (ass_data_len) {
         set_stage_in_tweak(tweak, MSB_AD);
@@ -174,10 +140,10 @@ void DEOXYS_encrypt(const uint8_t *ass_data, size_t ass_data_len,
             /* Encrypt the current block */
             set_block_number_in_tweak(tweak, i);
             set_tweak_in_tweakey(tweakey, tweak);
-            aesTweakEncrypt(TWEAKEY_STATE_SIZE, ass_data + 16 * i, tweakey, temp);
+            aesTweakEncrypt(tweakey_size, ass_data + 16 * i, tweakey, temp);
 
-            /* Update Auth value */
-            xor_values(Auth, temp);
+            /* Update auth value */
+            xor_values(auth, temp);
 
             /* Go on with the next block */
             i++;
@@ -195,28 +161,26 @@ void DEOXYS_encrypt(const uint8_t *ass_data, size_t ass_data_len,
             set_stage_in_tweak(tweak, MSB_AD_LAST);
             set_block_number_in_tweak(tweak, i);
             set_tweak_in_tweakey(tweakey, tweak);
-            aesTweakEncrypt(TWEAKEY_STATE_SIZE, last_block, tweakey, temp);
+            aesTweakEncrypt(tweakey_size, last_block, tweakey, temp);
 
-            /* Update the Auth value */
-            xor_values(Auth, temp);
+            /* Update the auth value */
+            xor_values(auth, temp);
         }
 
     }/* if ass_data_len>0 */
-
-
 
     /* Message */
     memset(tweak, 0, sizeof(tweak));
     set_nonce_in_tweak(tweak, nonce);
 
-    memset(Checksum, 0, 16);
+    memset(checksum, 0, 16);
     set_stage_in_tweak(tweak, MSB_M);
     i = 0;
     while (16 * (i + 1) <= m_len) {
-        xor_values(Checksum, message + 16 * i);
+        xor_values(checksum, message + 16 * i);
         set_block_number_in_tweak(tweak, i);
         set_tweak_in_tweakey(tweakey, tweak);
-        aesTweakEncrypt(TWEAKEY_STATE_SIZE, message + 16 * i, tweakey, ciphertext + 16 * i);
+        aesTweakEncrypt(tweakey_size, message + 16 * i, tweakey, ciphertext + 16 * i);
         i++;
     }
 
@@ -225,7 +189,7 @@ void DEOXYS_encrypt(const uint8_t *ass_data, size_t ass_data_len,
         memset(last_block, 0, 16);
         memcpy(last_block, message + 16 * i, m_len - 16 * i);
         last_block[m_len - 16 * i] = 0x80;
-        xor_values(Checksum, last_block);
+        xor_values(checksum, last_block);
 
         /* Create the zero block for encryption */
         memset(zero_block, 0, 16);
@@ -234,72 +198,54 @@ void DEOXYS_encrypt(const uint8_t *ass_data, size_t ass_data_len,
         set_stage_in_tweak(tweak, MSB_M_LAST_NONZERO);
         set_block_number_in_tweak(tweak, i);
         set_tweak_in_tweakey(tweakey, tweak);
-        aesTweakEncrypt(TWEAKEY_STATE_SIZE, zero_block, tweakey, Pad);
+        aesTweakEncrypt(tweakey_size, zero_block, tweakey, Pad);
 
         for (j = 0; j < m_len - 16 * i; j++) {
             ciphertext[16 * i + j] = last_block[j] ^ Pad[j];
         }
         set_stage_in_tweak(tweak, MSB_CHKSUM_NON_FULL);
         set_tweak_in_tweakey(tweakey, tweak);
-        aesTweakEncrypt(TWEAKEY_STATE_SIZE, Checksum, tweakey, Final);
+        aesTweakEncrypt(tweakey_size, checksum, tweakey, final);
     } else {
         set_block_number_in_tweak(tweak, i);
         set_stage_in_tweak(tweak, MSB_CHKSUM_FULL);
         set_tweak_in_tweakey(tweakey, tweak);
-        aesTweakEncrypt(TWEAKEY_STATE_SIZE, Checksum, tweakey, Final);
+        aesTweakEncrypt(tweakey_size, checksum, tweakey, final);
     }
 
     /* Append the authentication tag to the ciphertext */
     for (i = 0; i < 16; i++) {
-        tag[i] = Final[i] ^ Auth[i];
+        tag[i] = final[i] ^ auth[i];
     }
-
+    free(tweakey);
 }
 
-/**
- * decrypt and verify ciphertext
- * INPUT:
- * @param ass_data, len = @param ass_data_len
- * @param ass_data_len
- * @param ciphertext, len = @param c_len
- * @param c_len
- * @param key, len = 16
- * @param nonce, len = 16
- * @param tag, len = 16
- * OUTPUT:
- * @param message, len = @param c_len
- * @return 1 if tag is valid, 0 otherwise
- */
-int DEOXYS_decrypt(const uint8_t *ass_data, size_t ass_data_len,
-                        const uint8_t *ciphertext, size_t c_len,
-                        const uint8_t *key, const uint8_t *nonce,
-                        const uint8_t *tag, uint8_t *message) {
+int deoxys_decrypt(const uint8_t tweakey_size,
+                   const uint8_t *ass_data, size_t ass_data_len,
+                   const uint8_t *ciphertext, size_t c_len,
+                   const uint8_t *key, const uint8_t *nonce,
+                   const uint8_t *tag, uint8_t *message) {
 
     uint64_t i;
     uint64_t j;
     uint8_t tweak[16];
-    uint8_t tweakey[TWEAKEY_STATE_SIZE / 8];
-    uint8_t Auth[16];
+    uint8_t *tweakey = (uint8_t *) malloc(tweakey_size);
+    uint8_t auth[16];
     uint8_t last_block[16];
-    uint8_t Checksum[16];
-    uint8_t Final[16];
+    uint8_t checksum[16];
+    uint8_t final[16];
     uint8_t zero_block[16];
     uint8_t Pad[16];
-    uint8_t Tag[16];
     uint8_t temp[16];
 
-    /* Get the tag from the last 16 bytes of the ciphertext */
-    memcpy(Tag, tag, 16);
-
     /* Fill the tweak with zeros (no nonce !!!) */
-    memset(tweak, 0, sizeof(tweak));
-
+    memset(tweak, 0, 16);
 
     /* Fill the key(s) in the tweakey state */
-    memcpy(tweakey, key, 16);
+    memcpy(tweakey, key, tweakey_size - 16);
 
     /* Associated data */
-    memset(Auth, 0, 16);
+    memset(auth, 0, 16);
 
     if (ass_data_len) {
 
@@ -308,8 +254,8 @@ int DEOXYS_decrypt(const uint8_t *ass_data, size_t ass_data_len,
         while (16 * (i + 1) <= ass_data_len) {
             set_block_number_in_tweak(tweak, i);
             set_tweak_in_tweakey(tweakey, tweak);
-            aesTweakEncrypt(TWEAKEY_STATE_SIZE, ass_data + 16 * i, tweakey, temp);
-            xor_values(Auth, temp);
+            aesTweakEncrypt(tweakey_size, ass_data + 16 * i, tweakey, temp);
+            xor_values(auth, temp);
             i++;
         }
 
@@ -321,8 +267,8 @@ int DEOXYS_decrypt(const uint8_t *ass_data, size_t ass_data_len,
             set_stage_in_tweak(tweak, MSB_AD_LAST);
             set_block_number_in_tweak(tweak, i);
             set_tweak_in_tweakey(tweakey, tweak);
-            aesTweakEncrypt(TWEAKEY_STATE_SIZE, last_block, tweakey, temp);
-            xor_values(Auth, temp);
+            aesTweakEncrypt(tweakey_size, last_block, tweakey, temp);
+            xor_values(auth, temp);
         }
 
     } /* if ass_data_len>0 */
@@ -332,15 +278,15 @@ int DEOXYS_decrypt(const uint8_t *ass_data, size_t ass_data_len,
     set_nonce_in_tweak(tweak, nonce);
 
 
-    memset(Checksum, 0, 16);
+    memset(checksum, 0, 16);
     set_stage_in_tweak(tweak, MSB_M);
     i = 0;
     while (16 * (i + 1) <= c_len) {
         set_tweak_in_tweakey(tweakey, tweak);
         set_block_number_in_tweak(tweak, i);
         set_tweak_in_tweakey(tweakey, tweak);
-        aesTweakDecrypt(TWEAKEY_STATE_SIZE, ciphertext + 16 * i, tweakey, message + 16 * i);
-        xor_values(Checksum, message + 16 * i);
+        aesTweakDecrypt(tweakey_size, ciphertext + 16 * i, tweakey, message + 16 * i);
+        xor_values(checksum, message + 16 * i);
         i++;
     }
 
@@ -350,8 +296,8 @@ int DEOXYS_decrypt(const uint8_t *ass_data, size_t ass_data_len,
         set_block_number_in_tweak(tweak, i);
         set_stage_in_tweak(tweak, MSB_CHKSUM_FULL);
         set_tweak_in_tweakey(tweakey, tweak);
-        aesTweakEncrypt(TWEAKEY_STATE_SIZE, Checksum, tweakey, Final);
-        xor_values(Final, Auth);
+        aesTweakEncrypt(tweakey_size, checksum, tweakey, final);
+        xor_values(final, auth);
     } else {
 
         /* Prepare the full-zero block */
@@ -363,7 +309,7 @@ int DEOXYS_decrypt(const uint8_t *ass_data, size_t ass_data_len,
         set_tweak_in_tweakey(tweakey, tweak);
 
         /* Encrypt */
-        aesTweakEncrypt(TWEAKEY_STATE_SIZE, zero_block, tweakey, Pad);
+        aesTweakEncrypt(tweakey_size, zero_block, tweakey, Pad);
 
         /* XOR the partial ciphertext */
         memset(last_block, 0, 16);
@@ -377,18 +323,97 @@ int DEOXYS_decrypt(const uint8_t *ass_data, size_t ass_data_len,
         }
 
         /* Update checksum */
-        xor_values(Checksum, last_block);
+        xor_values(checksum, last_block);
 
         /* Verify the tag */
         set_stage_in_tweak(tweak, MSB_CHKSUM_NON_FULL);
         set_tweak_in_tweakey(tweakey, tweak);
-        aesTweakEncrypt(TWEAKEY_STATE_SIZE, Checksum, tweakey, Final);
-        xor_values(Final, Auth);
+        aesTweakEncrypt(tweakey_size, checksum, tweakey, final);
+        xor_values(final, auth);
     }
-    /* If the tags does not match, return error */
-    if (0 != memcmp_const(Final, Tag, sizeof(Tag))) {
-        memset(message, 0, c_len);
-        return 0;
-    }
-    return 1;
+    free(tweakey);
+
+    return !memcmp(final, tag, 16);
+}
+
+/**
+ * encrypt and sign message using Deoxys-II-128-128
+ * INPUT:
+ * @param ass_data, len = @param ass_data_len
+ * @param ass_data_len
+ * @param message, len = @param m_len
+ * @param m_len
+ * @param key, len = 16
+ * @param nonce, len = 8
+ * OUTPUT:
+ * @param tag, len = 16
+ * @param ciphertext, len = @param m_len
+ */
+void DEOXYS_encrypt_128(const uint8_t *ass_data, size_t ass_data_len,
+                        const uint8_t *message, size_t m_len,
+                        const uint8_t *key, const uint8_t *nonce,
+                        uint8_t *tag, uint8_t *ciphertext) {
+    deoxys_encrypt(32, ass_data, ass_data_len, message, m_len, key, nonce, tag, ciphertext);
+}
+
+/**
+ * decrypt and verify ciphertext using Deoxys-II-128-128
+ * INPUT:
+ * @param ass_data, len = @param ass_data_len
+ * @param ass_data_len
+ * @param ciphertext, len = @param c_len
+ * @param c_len
+ * @param key, len = 16
+ * @param nonce, len = 8
+ * @param tag, len = 16
+ * OUTPUT:
+ * @param message, len = @param c_len
+ * @return 1 if tag is valid, 0 otherwise
+ */
+int DEOXYS_decrypt_128(const uint8_t *ass_data, size_t ass_data_len,
+                       const uint8_t *ciphertext, size_t c_len,
+                       const uint8_t *key, const uint8_t *nonce,
+                       const uint8_t *tag, uint8_t *message) {
+    return deoxys_decrypt(32, ass_data, ass_data_len, ciphertext, c_len, key, nonce, tag, message);
+}
+
+/**
+ * encrypt and sign message using Deoxys-II-256-128
+ * INPUT:
+ * @param ass_data, len = @param ass_data_len
+ * @param ass_data_len
+ * @param message, len = @param m_len
+ * @param m_len
+ * @param key, len = 32
+ * @param nonce, len = 8
+ * OUTPUT:
+ * @param tag, len = 16
+ * @param ciphertext, len = @param m_len
+ */
+void DEOXYS_encrypt_256(const uint8_t *ass_data, size_t ass_data_len,
+                        const uint8_t *message, size_t m_len,
+                        const uint8_t *key, const uint8_t *nonce,
+                        uint8_t *tag, uint8_t *ciphertext) {
+    deoxys_encrypt(48, ass_data, ass_data_len, message, m_len, key, nonce, tag, ciphertext);
+}
+
+/**
+ * decrypt and verify ciphertext using Deoxys-II-256-128
+ * INPUT:
+ * @param ass_data, len = @param ass_data_len
+ * @param ass_data_len
+ * @param ciphertext, len = @param c_len
+ * @param c_len
+ * @param key, len = 32
+ * @param nonce, len = 8
+ * @param tag, len = 16
+ * OUTPUT:
+ * @param message, len = @param c_len
+ * @return 1 if tag is valid, 0 otherwise
+ */
+int DEOXYS_decrypt_256(const uint8_t *ass_data, size_t ass_data_len,
+                       const uint8_t *ciphertext, size_t c_len,
+                       const uint8_t *key, const uint8_t *nonce,
+                       const uint8_t *tag, uint8_t *message) {
+    return deoxys_decrypt(48, ass_data, ass_data_len, ciphertext, c_len, key, nonce, tag, message);
 }
