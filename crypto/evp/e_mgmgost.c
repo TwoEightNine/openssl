@@ -47,7 +47,7 @@ static const EVP_CIPHER mgmgost_ecb = {
         mgmgost_init_key,
         mgmgost_do_cipher,
         NULL,
-        sizeof(EVP_GHGOST_KEY),
+        sizeof(EVP_MGMGOST_KEY),
         NULL, NULL,
         NULL, NULL
 };
@@ -59,7 +59,7 @@ static const EVP_CIPHER mgmgost_cbc = {
         mgmgost_init_key,
         mgmgost_do_cipher,
         NULL,
-        sizeof(EVP_GHGOST_KEY),
+        sizeof(EVP_MGMGOST_KEY),
         NULL, NULL,
         NULL, NULL
 };
@@ -71,7 +71,7 @@ static const EVP_CIPHER mgmgost_ofb = {
         mgmgost_init_key,
         mgmgost_do_cipher,
         NULL,
-        sizeof(EVP_GHGOST_KEY),
+        sizeof(EVP_MGMGOST_KEY),
         NULL, NULL,
         NULL, NULL
 };
@@ -83,7 +83,7 @@ static const EVP_CIPHER mgmgost_cfb = {
         mgmgost_init_key,
         mgmgost_do_cipher,
         NULL,
-        sizeof(EVP_GHGOST_KEY),
+        sizeof(EVP_MGMGOST_KEY),
         NULL, NULL,
         NULL, NULL
 };
@@ -95,7 +95,7 @@ static const EVP_CIPHER mgmgost_ctr = {
         mgmgost_init_key,
         mgmgost_do_cipher,
         NULL,
-        sizeof(EVP_GHGOST_KEY),
+        sizeof(EVP_MGMGOST_KEY),
         NULL, NULL,
         NULL, NULL
 };
@@ -107,7 +107,7 @@ static const EVP_CIPHER mgmgost_ae = {
         mgmgost_init_key,
         mgmgost_do_cipher,
         NULL,
-        sizeof(EVP_GHGOST_KEY),
+        sizeof(EVP_MGMGOST_KEY),
         NULL, NULL,
         mgmgost_ctrl,
         NULL
@@ -120,7 +120,7 @@ static const EVP_CIPHER mgmgost_eax = {
         mgmgost_init_key,
         mgmgost_do_eax_cipher,
         NULL,
-        sizeof(EVP_GHGOST_KEY),
+        sizeof(EVP_MGMGOST_KEY),
         NULL, NULL,
         mgmgost_ctrl,
         NULL
@@ -296,8 +296,13 @@ static int mgmgost_sign(const unsigned char *data, const uint8_t *key,
         memcpy(tag, iv, 16);
     }
 
+    /**
+     * encrypt zeros to obtain mac_key
+     */
     unsigned char mac_key[16];
-    GHGOST_get_mac_key(key, mac_key);
+    memset(mac_key, 0, 16);
+    mgmgost_encrypt_128(mac_key, mac_key, key);
+
     for (int i = 0; i < 16; i++) {
         tag[i] = data[len - 16 + i] ^ tag[i] ^ mac_key[i];
     }
