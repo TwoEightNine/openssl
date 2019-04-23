@@ -1700,9 +1700,20 @@ dstu4145le 2 9 : uacurve9 : DSTU curve 9
                 : GHGOST-CTR    : ghgost-ctr
                 : GHGOST-AE     : ghgost-ae
                 : GHGOST-EAX    : ghgost-eax
+
                 : AES-128-EAX   : aes-128-eax
+
 		        : AEGIS-128 	: aegis-128
 		        : AEGIS-128L	: aegis-128l
 		        : AEGIS-256 	: aegis-256
+
 		        : DEOXYS-128 	: deoxys-128
 		        : DEOXYS-256 	: deoxys-256
+
+                : MGMGOST-ECB   : mgmgost-ecb
+                : MGMGOST-CBC   : mgmgost-cbc
+                : MGMGOST-OFB   : mgmgost-ofb
+                : MGMGOST-CFB   : mgmgost-cfb
+                : MGMGOST-CTR   : mgmgost-ctr
+                : MGMGOST-AE    : mgmgost-ae
+                : MGMGOST-EAX   : mgmgost-eax

@@ -1080,7 +1080,7 @@ static const unsigned char so[7775] = {
     0x2A,0x81,0x1C,0xCF,0x55,0x01,0x83,0x75,       /* [ 7766] OBJ_SM2_with_SM3 */
 };
 
-#define NUM_NID 1219
+#define NUM_NID 1226
 static const ASN1_OBJECT nid_objs[NUM_NID] = {
     {"UNDEF", "undefined", NID_undef},
     {"rsadsi", "RSA Data Security, Inc.", NID_rsadsi, 6, &so[0]},
@@ -2301,9 +2301,16 @@ static const ASN1_OBJECT nid_objs[NUM_NID] = {
     {"AEGIS-256", "aegis-256", NID_aegis_256},
     {"DEOXYS-128", "deoxys-128", NID_deoxys_128},
     {"DEOXYS-256", "deoxys-256", NID_deoxys_256},
+    {"MGMGOST-ECB", "mgmgost-ecb", NID_mgmgost_ecb},
+    {"MGMGOST-CBC", "mgmgost-cbc", NID_mgmgost_cbc},
+    {"MGMGOST-OFB", "mgmgost-ofb", NID_mgmgost_ofb},
+    {"MGMGOST-CFB", "mgmgost-cfb", NID_mgmgost_cfb},
+    {"MGMGOST-CTR", "mgmgost-ctr", NID_mgmgost_ctr},
+    {"MGMGOST-AE", "mgmgost-ae", NID_mgmgost_ae},
+    {"MGMGOST-EAX", "mgmgost-eax", NID_mgmgost_eax},
 };
 
-#define NUM_SN 1209
+#define NUM_SN 1216
 static const unsigned int sn_objs[NUM_SN] = {
      364,    /* "AD_DVCS" */
     1215,    /* "AEGIS-128" */
@@ -2507,6 +2514,13 @@ static const unsigned int sn_objs[NUM_SN] = {
      114,    /* "MD5-SHA1" */
       95,    /* "MDC2" */
      911,    /* "MGF1" */
+    1224,    /* "MGMGOST-AE" */
+    1220,    /* "MGMGOST-CBC" */
+    1222,    /* "MGMGOST-CFB" */
+    1223,    /* "MGMGOST-CTR" */
+    1225,    /* "MGMGOST-EAX" */
+    1219,    /* "MGMGOST-ECB" */
+    1221,    /* "MGMGOST-OFB" */
      388,    /* "Mail" */
      393,    /* "NULL" */
      404,    /* "NULL" */
@@ -3516,7 +3530,7 @@ static const unsigned int sn_objs[NUM_SN] = {
     1093,    /* "x509ExtAdmission" */
 };
 
-#define NUM_LN 1209
+#define NUM_LN 1216
 static const unsigned int ln_objs[NUM_LN] = {
      363,    /* "AD Time Stamping" */
      405,    /* "ANSI X9.62" */
@@ -4371,6 +4385,13 @@ static const unsigned int ln_objs[NUM_LN] = {
      514,    /* "message extensions" */
       51,    /* "messageDigest" */
      911,    /* "mgf1" */
+    1224,    /* "mgmgost-ae" */
+    1220,    /* "mgmgost-cbc" */
+    1222,    /* "mgmgost-cfb" */
+    1223,    /* "mgmgost-ctr" */
+    1225,    /* "mgmgost-eax" */
+    1219,    /* "mgmgost-ecb" */
+    1221,    /* "mgmgost-ofb" */
      506,    /* "mime-mhs-bodies" */
      505,    /* "mime-mhs-headings" */
      488,    /* "mobileTelephoneNumber" */

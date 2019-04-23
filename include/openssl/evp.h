@@ -965,6 +965,15 @@ const EVP_CIPHER *EVP_aegis_256(void);
 const EVP_CIPHER *EVP_deoxys_128(void);
 const EVP_CIPHER *EVP_deoxys_256(void);
 # endif
+# ifndef OPENSSL_NO_MGMGOST
+const EVP_CIPHER *EVP_mgmgost_ecb(void);
+const EVP_CIPHER *EVP_mgmgost_cbc(void);
+const EVP_CIPHER *EVP_mgmgost_ofb(void);
+const EVP_CIPHER *EVP_mgmgost_cfb(void);
+const EVP_CIPHER *EVP_mgmgost_ctr(void);
+const EVP_CIPHER *EVP_mgmgost_ae(void);
+const EVP_CIPHER *EVP_mgmgost_eax(void);
+# endif
 
 # if !OPENSSL_API_1_1_0
 #  define OPENSSL_add_all_algorithms_conf() \

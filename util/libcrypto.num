@@ -4819,3 +4819,16 @@ EVP_aegis_128                           4766	3_0_0	EXIST::FUNCTION:AEGIS
 EVP_aegis_256                           4767	3_0_0	EXIST::FUNCTION:AEGIS
 EVP_deoxys_128                          4768	3_0_0	EXIST::FUNCTION:DEOXYS
 EVP_deoxys_256                          4769	3_0_0	EXIST::FUNCTION:DEOXYS
+DEOXYS_encrypt_128                      4770	3_0_0	EXIST::FUNCTION:
+DEOXYS_decrypt_128                      4771	3_0_0	EXIST::FUNCTION:
+DEOXYS_encrypt_256                      4772	3_0_0	EXIST::FUNCTION:
+DEOXYS_decrypt_256                      4773	3_0_0	EXIST::FUNCTION:
+MGMGOST_encrypt                         4774	3_0_0	EXIST::FUNCTION:
+MGMGOST_decrypt                         4775	3_0_0	EXIST::FUNCTION:
+EVP_mgmgost_ecb                         4776	3_0_0	EXIST::FUNCTION:MGMGOST
+EVP_mgmgost_cbc                         4777	3_0_0	EXIST::FUNCTION:MGMGOST
+EVP_mgmgost_ofb                         4778	3_0_0	EXIST::FUNCTION:MGMGOST
+EVP_mgmgost_cfb                         4779	3_0_0	EXIST::FUNCTION:MGMGOST
+EVP_mgmgost_ctr                         4780	3_0_0	EXIST::FUNCTION:MGMGOST
+EVP_mgmgost_ae                          4781	3_0_0	EXIST::FUNCTION:MGMGOST
+EVP_mgmgost_eax                         4782	3_0_0	EXIST::FUNCTION:MGMGOST

@@ -384,6 +384,7 @@ my @disablables = (
     "md2",
     "md4",
     "mdc2",
+    "mgmgost",
     "msan",
     "multiblock",
     "nextprotoneg",

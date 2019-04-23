@@ -5290,3 +5290,31 @@
 #define SN_deoxys_256           "DEOXYS-256"
 #define LN_deoxys_256           "deoxys-256"
 #define NID_deoxys_256          1218
+
+#define SN_mgmgost_ecb          "MGMGOST-ECB"
+#define LN_mgmgost_ecb          "mgmgost-ecb"
+#define NID_mgmgost_ecb         1219
+
+#define SN_mgmgost_cbc          "MGMGOST-CBC"
+#define LN_mgmgost_cbc          "mgmgost-cbc"
+#define NID_mgmgost_cbc         1220
+
+#define SN_mgmgost_ofb          "MGMGOST-OFB"
+#define LN_mgmgost_ofb          "mgmgost-ofb"
+#define NID_mgmgost_ofb         1221
+
+#define SN_mgmgost_cfb          "MGMGOST-CFB"
+#define LN_mgmgost_cfb          "mgmgost-cfb"
+#define NID_mgmgost_cfb         1222
+
+#define SN_mgmgost_ctr          "MGMGOST-CTR"
+#define LN_mgmgost_ctr          "mgmgost-ctr"
+#define NID_mgmgost_ctr         1223
+
+#define SN_mgmgost_ae           "MGMGOST-AE"
+#define LN_mgmgost_ae           "mgmgost-ae"
+#define NID_mgmgost_ae          1224
+
+#define SN_mgmgost_eax          "MGMGOST-EAX"
+#define LN_mgmgost_eax          "mgmgost-eax"
+#define NID_mgmgost_eax         1225

@@ -1216,3 +1216,10 @@ aegis_128		1215
 aegis_256		1216
 deoxys_128		1217
 deoxys_256		1218
+mgmgost_ecb		1219
+mgmgost_cbc		1220
+mgmgost_ofb		1221
+mgmgost_cfb		1222
+mgmgost_ctr		1223
+mgmgost_ae		1224
+mgmgost_eax		1225

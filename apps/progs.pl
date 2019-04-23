@@ -162,6 +162,8 @@ foreach my $cmd (
     "ghgost-ecb", "ghgost-cbc", "ghgost-ofb", "ghgost-cfb", "ghgost-ctr",
     "ghgost-ae", "ghgost-eax",
     "idea-cbc","idea-ecb", "idea-cfb", "idea-ofb",
+    "mgmgost-ecb", "mgmgost-cbc", "mgmgost-ofb", "mgmgost-cfb",
+    "mgmgost-ctr", "mgmgost-ae", "mgmgost-eax",
     "seed-cbc","seed-ecb", "seed-cfb", "seed-ofb",
     "rc2-cbc", "rc2-ecb", "rc2-cfb","rc2-ofb", "rc2-64-cbc", "rc2-40-cbc",
     "bf-cbc", "bf-ecb", "bf-cfb", "bf-ofb",

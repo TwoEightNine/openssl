@@ -286,5 +286,14 @@ void openssl_add_all_ciphers_int(void)
     EVP_add_cipher(EVP_deoxys_128());
     EVP_add_cipher(EVP_deoxys_256());
 # endif
+# ifndef OPENSSL_NO_MGMGOST
+    EVP_add_cipher(EVP_mgmgost_ecb());
+    EVP_add_cipher(EVP_mgmgost_cbc());
+    EVP_add_cipher(EVP_mgmgost_ofb());
+    EVP_add_cipher(EVP_mgmgost_cfb());
+    EVP_add_cipher(EVP_mgmgost_ctr());
+    EVP_add_cipher(EVP_mgmgost_ae());
+    EVP_add_cipher(EVP_mgmgost_eax());
+# endif
 #endif
 }
