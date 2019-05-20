@@ -3,85 +3,40 @@
 #include <string.h>     //for memcmp
 #include <wmmintrin.h>  //for intrinsics for AES-NI
 
-static const uint8_t CONST[32] = {
-        0x00, 0x01, 0x01, 0x02, 0x03, 0x05, 0x08, 0x0d, 0x15, 0x22, 0x37, 0x59, 0x90, 0xe9, 0x79, 0x62,
-        0xdb, 0x3d, 0x18, 0x55, 0x6d, 0xc2, 0x2f, 0xf1, 0x20, 0x11, 0x31, 0x42, 0x73, 0xb5, 0x28, 0xdd
-};
 
-void print_data(const uint8_t *data, size_t len) {
-    for (size_t i = 0; i < len; i++) {
-        printf("%02x", data[i]);
-    }
-    printf("\n");
-}
+void init_128(const unsigned char *key, const unsigned char *iv, __m128i *state) {
+    int i;
 
-__m128i xor_state_128l_0(__m128i *state, uint8_t *state_out) {
-    __m128i xor_state = _mm_xor_si128(state[1], _mm_xor_si128(state[6], _mm_and_si128(state[2], state[3])));
-    memcpy(state_out, &xor_state, 16);
-}
+    __m128i tmp;
+    __m128i keytmp = _mm_load_si128((__m128i *) key);
+    __m128i ivtmp = _mm_load_si128((__m128i *) iv);
 
-__m128i xor_state_128l_1(__m128i *state, uint8_t *state_out) {
-    __m128i xor_state = _mm_xor_si128(state[2], _mm_xor_si128(state[5], _mm_and_si128(state[6], state[7])));
-    memcpy(state_out, &xor_state, 16);
-}
+    state[0] = ivtmp;
+    state[1] = _mm_set_epi8(0xdd, 0x28, 0xb5, 0x73, 0x42, 0x31, 0x11, 0x20, 0xf1, 0x2f, 0xc2, 0x6d, 0x55, 0x18, 0x3d,
+                            0xdb);
+    state[2] = _mm_set_epi8(0x62, 0x79, 0xe9, 0x90, 0x59, 0x37, 0x22, 0x15, 0x0d, 0x08, 0x05, 0x03, 0x02, 0x01, 0x1,
+                            0x0);
+    state[3] = _mm_xor_si128(keytmp,
+                             _mm_set_epi8(0x62, 0x79, 0xe9, 0x90, 0x59, 0x37, 0x22, 0x15, 0x0d, 0x08, 0x05, 0x03, 0x02,
+                                          0x01, 0x1, 0x0));
+    state[4] = _mm_xor_si128(keytmp,
+                             _mm_set_epi8(0xdd, 0x28, 0xb5, 0x73, 0x42, 0x31, 0x11, 0x20, 0xf1, 0x2f, 0xc2, 0x6d, 0x55,
+                                          0x18, 0x3d, 0xdb));
+    state[0] = _mm_xor_si128(state[0], keytmp);
 
-__m128i xor_state_128(__m128i *state, uint8_t *state_out) {
-    __m128i xor_state = _mm_xor_si128(state[1], _mm_xor_si128(state[4], _mm_and_si128(state[2], state[3])));
-    memcpy(state_out, &xor_state, 16);
-}
+    keytmp = _mm_xor_si128(keytmp, ivtmp);
+    for (i = 0; i < 10; i++) {
+        //state update function
+        tmp = state[4];
+        state[4] = _mm_aesenc_si128(state[3], state[4]);
+        state[3] = _mm_aesenc_si128(state[2], state[3]);
+        state[2] = _mm_aesenc_si128(state[1], state[2]);
+        state[1] = _mm_aesenc_si128(state[0], state[1]);
+        state[0] = _mm_aesenc_si128(tmp, state[0]);
 
-__m128i xor_state_256(__m128i *state, uint8_t *state_out) {
-    __m128i xor_state = _mm_xor_si128(state[1], _mm_xor_si128(state[4], _mm_xor_si128(state[5], _mm_and_si128(state[2],
-                                                                                                              state[3]))));
-    memcpy(state_out, &xor_state, 16);
-}
-
-void update_state_128(__m128i *state, __m128i m) {
-    __m128i tmp = _mm_aesenc_si128(state[4], _mm_xor_si128(state[0], m));
-    state[4] = _mm_aesenc_si128(state[3], state[4]);
-    state[3] = _mm_aesenc_si128(state[2], state[3]);
-    state[2] = _mm_aesenc_si128(state[1], state[2]);
-    state[1] = _mm_aesenc_si128(state[0], state[1]);
-    state[0] = tmp;
-}
-
-inline void update_state_128l(__m128i *state, __m128i m_a, __m128i m_b) {
-    __m128i tmp = _mm_aesenc_si128(state[7], _mm_xor_si128(state[0], m_a));
-    state[7] = _mm_aesenc_si128(state[6], state[7]);
-    state[6] = _mm_aesenc_si128(state[5], state[6]);
-    state[5] = _mm_aesenc_si128(state[4], state[5]);
-    state[4] = _mm_aesenc_si128(state[3], _mm_xor_si128(state[4], m_b));
-    state[3] = _mm_aesenc_si128(state[2], state[3]);
-    state[2] = _mm_aesenc_si128(state[1], state[2]);
-    state[1] = _mm_aesenc_si128(state[0], state[1]);
-    state[0] = tmp;
-}
-
-void update_state_256(__m128i *state, __m128i m) {
-    __m128i tmp = _mm_aesenc_si128(state[5], _mm_xor_si128(state[0], m));
-    state[5] = _mm_aesenc_si128(state[4], state[5]);
-    state[4] = _mm_aesenc_si128(state[3], state[4]);
-    state[3] = _mm_aesenc_si128(state[2], state[3]);
-    state[2] = _mm_aesenc_si128(state[1], state[2]);
-    state[1] = _mm_aesenc_si128(state[0], state[1]);
-    state[0] = tmp;
-}
-
-void init_state_128(__m128i *state, __m128i key, __m128i iv) {
-    __m128i xor_key_iv = _mm_xor_si128(key, iv);
-    __m128i const_0 = _mm_loadu_si128((__m128i *) CONST);
-    __m128i const_1 = _mm_loadu_si128((__m128i * )(CONST + 16));
-
-    state[0] = xor_key_iv;
-    state[1] = const_1;
-    state[2] = const_0;
-    state[3] = _mm_xor_si128(key, const_0);
-    state[4] = _mm_xor_si128(key, const_1);
-
-    uint8_t i = 5;
-    while (i--) {
-        update_state_128(state, key);
-        update_state_128(state, xor_key_iv);
+        //xor msg with state[0]
+        keytmp = _mm_xor_si128(keytmp, ivtmp);
+        state[0] = _mm_xor_si128(state[0], keytmp);
     }
 }
 
@@ -127,120 +82,89 @@ void init_128l(const uint8_t *key, const uint8_t *iv, __m128i *state) {
     }
 }
 
-void init_state_256(__m128i *state, __m128i key_0, __m128i key_1, __m128i iv_0, __m128i iv_1) {
-    __m128i xor_key_0_iv_0 = _mm_xor_si128(key_0, iv_0);
-    __m128i xor_key_1_iv_1 = _mm_xor_si128(key_1, iv_1);
-    __m128i const_0 = _mm_loadu_si128((__m128i *) CONST);
-    __m128i const_1 = _mm_loadu_si128((__m128i * )(CONST + 16));
+void init_256(const unsigned char *key,
+              const unsigned char *iv, __m128i *state)
+{
+    int i;
 
-    state[0] = xor_key_0_iv_0;
-    state[1] = xor_key_1_iv_1;
-    state[2] = const_1;
-    state[3] = const_0;
-    state[4] = _mm_xor_si128(key_0, const_0);
-    state[5] = _mm_xor_si128(key_1, const_1);
+    __m128i  tmp;
+    __m128i  keytmp1 = _mm_load_si128((__m128i*)key);
+    __m128i  keytmp2 = _mm_load_si128((__m128i*)(key+16));
+    __m128i  ivtmp1  = _mm_load_si128((__m128i*)iv);
+    __m128i  ivtmp2  = _mm_load_si128((__m128i*)(iv+16));
 
-    uint8_t i = 4;
-    while (i--) {
-        update_state_256(state, key_0);
-        update_state_256(state, key_1);
-        update_state_256(state, xor_key_0_iv_0);
-        update_state_256(state, xor_key_1_iv_1);
+
+    state[0] = ivtmp1;
+    state[1] = ivtmp2;
+    state[2] = _mm_set_epi8(0xdd,0x28,0xb5,0x73,0x42,0x31,0x11,0x20,0xf1,0x2f,0xc2,0x6d,0x55,0x18,0x3d,0xdb);
+    state[3] = _mm_set_epi8(0x62,0x79,0xe9,0x90,0x59,0x37,0x22,0x15,0x0d,0x08,0x05,0x03,0x02,0x01,0x1, 0x0);
+    state[4] = _mm_xor_si128(keytmp1, _mm_set_epi8(0x62,0x79,0xe9,0x90,0x59,0x37,0x22,0x15,0x0d,0x08,0x05,0x03,0x02,0x01,0x1,0x0));
+    state[5] = _mm_xor_si128(keytmp2, _mm_set_epi8(0xdd,0x28,0xb5,0x73,0x42,0x31,0x11,0x20,0xf1,0x2f,0xc2,0x6d,0x55,0x18,0x3d,0xdb));
+
+
+    state[0] = _mm_xor_si128(state[0], keytmp1);
+    state[1] = _mm_xor_si128(state[1], keytmp2);
+
+    keytmp1 = _mm_xor_si128(keytmp1,ivtmp1);
+    keytmp2 = _mm_xor_si128(keytmp2,ivtmp2);
+
+    for (i = 0; i < 8; i++) {
+        //state update function
+        tmp = state[5];
+        state[5] = _mm_aesenc_si128(state[4],state[5]);
+        state[4] = _mm_aesenc_si128(state[3],state[4]);
+        state[3] = _mm_aesenc_si128(state[2],state[3]);
+        state[2] = _mm_aesenc_si128(state[1],state[2]);
+        state[1] = _mm_aesenc_si128(state[0],state[1]);
+        state[0] = _mm_aesenc_si128(tmp,state[0]);
+
+        //xor msg with state[0]
+        keytmp1  = _mm_xor_si128(keytmp1,ivtmp1);
+        state[0] = _mm_xor_si128(state[0], keytmp1);
+
+
+        //state update function
+        tmp = state[5];
+        state[5] = _mm_aesenc_si128(state[4],state[5]);
+        state[4] = _mm_aesenc_si128(state[3],state[4]);
+        state[3] = _mm_aesenc_si128(state[2],state[3]);
+        state[2] = _mm_aesenc_si128(state[1],state[2]);
+        state[1] = _mm_aesenc_si128(state[0],state[1]);
+        state[0] = _mm_aesenc_si128(tmp,state[0]);
+
+        //xor msg with state[0]
+        keytmp2  = _mm_xor_si128(keytmp2, ivtmp2);
+        state[0] = _mm_xor_si128(state[0], keytmp2);
     }
 }
 
-void process_ad_128(__m128i *state, const uint8_t *ad, size_t len) {
-    size_t l = 0;
-    size_t full_block_len = (len >> 4) << 4;
-    while (l != full_block_len) {
-        update_state_128(state, _mm_loadu_si128((__m128i * )(ad + l)));
-        l += 16;
-    }
+inline void encrypt_128(const unsigned char *plaintextblk,
+                        unsigned char *ciphertextblk, __m128i *state) {
+    __m128i t, ct;
+    uint8_t tt[16];
+    for (uint8_t i=0; i < 16; i++) tt[i] = plaintextblk[i];
+    __m128i msg = _mm_load_si128((__m128i *) tt);
+    __m128i tmp = state[4];
 
-    size_t diff = len - full_block_len;
-    if (diff) {
-        uint8_t last_block[16];
-        memcpy(last_block, ad + full_block_len, diff);
-        memset(last_block + diff, 0, 16 - diff);
-        update_state_128(state, _mm_loadu_si128((__m128i *) last_block));
-    }
+    //encryption
+    t = _mm_and_si128(state[2], state[3]);
+    ct = _mm_xor_si128(msg, state[4]);
+    ct = _mm_xor_si128(ct, state[1]);
+    ct = _mm_xor_si128(ct, t);
+    _mm_store_si128((__m128i *) ciphertextblk, ct);
+
+    //state update function
+    state[4] = _mm_aesenc_si128(state[3], state[4]);
+    state[3] = _mm_aesenc_si128(state[2], state[3]);
+    state[2] = _mm_aesenc_si128(state[1], state[2]);
+    state[1] = _mm_aesenc_si128(state[0], state[1]);
+    state[0] = _mm_aesenc_si128(tmp, state[0]);
+
+    //message is used to update the state.
+    state[0] = _mm_xor_si128(state[0], msg);
 }
 
-inline void process_ad_128l(__m128i *state, const uint8_t *ad, size_t len) {
-    size_t l = 0;
-    size_t full_block_len = (len >> 5) << 5;
-    uint8_t *ad_ptr = &ad;
-    while (l != full_block_len) {
-        update_state_128l(state,
-                          _mm_loadu_si128((__m128i * )(ad_ptr)),
-                          _mm_loadu_si128((__m128i * )(ad_ptr + 16))
-        );
-        ad_ptr += 32;
-        l += 32;
-    }
-
-    size_t diff = len - full_block_len;
-    if (diff) {
-        uint8_t last_block[32];
-        memcpy(last_block, ad + full_block_len, diff);
-        memset(last_block + diff, 0, 32 - diff);
-        update_state_128l(state,
-                          _mm_loadu_si128((__m128i *) last_block),
-                          _mm_loadu_si128((__m128i * )(last_block + 16))
-        );
-    }
-}
-
-void process_ad_256(__m128i *state, const uint8_t *ad, size_t len) {
-    size_t l = 0;
-    size_t full_block_len = (len >> 4) << 4;
-    while (l != full_block_len) {
-        update_state_256(state, _mm_loadu_si128((__m128i * )(ad + l)));
-        l += 16;
-    }
-
-    size_t diff = len - full_block_len;
-    if (diff) {
-        uint8_t last_block[16];
-        memcpy(last_block, ad + full_block_len, diff);
-        memset(last_block + diff, 0, 16 - diff);
-        update_state_256(state, _mm_loadu_si128((__m128i *) last_block));
-    }
-}
-
-void encrypt_128(__m128i *state, const uint8_t *plain, size_t plain_len, uint8_t *cipher) {
-    size_t l = 0;
-    size_t full_block_len = (plain_len >> 4) << 4;
-
-    uint8_t state_0[16];
-    uint8_t i;
-    while (l != full_block_len) {
-        xor_state_128(state, state_0);
-        i = 16;
-        while (i--) {
-            cipher[l + i] = plain[l + i] ^ state_0[i];
-        }
-        update_state_128(state, _mm_loadu_si128((__m128i * )(plain + l)));
-        l += 16;
-    }
-
-    size_t diff = plain_len - full_block_len;
-    if (diff) {
-        uint8_t last_block[16];
-        memcpy(last_block, plain + full_block_len, diff);
-        memset(last_block + diff, 0, 16 - diff);
-
-        xor_state_128(state, state_0);
-        i = 16;
-        while (i--) {
-            cipher[l + i] = last_block[i] ^ state_0[i];
-        }
-
-        update_state_128(state, _mm_loadu_si128((__m128i *) last_block));
-    }
-}
-
-void encrypt_128l(const uint8_t *plaintextblk, uint8_t *ciphertextblk, __m128i *state) {
+void encrypt_128l(const unsigned char *plaintextblk, unsigned char *ciphertextblk, __m128i *state) {
     __m128i ct0, ct1;
     __m128i tmp;
     uint8_t t[32];
@@ -274,69 +198,54 @@ void encrypt_128l(const uint8_t *plaintextblk, uint8_t *ciphertextblk, __m128i *
     state[4] = _mm_xor_si128(state[4], msg1);
 }
 
-void encrypt_256(__m128i *state, const uint8_t *plain, size_t plain_len, uint8_t *cipher) {
-    size_t l = 0;
-    size_t full_block_len = (plain_len >> 4) << 4;
+inline void encrypt_256(const unsigned char *plaintextblk,
+                        unsigned char *ciphertextblk, __m128i *state)
+{
+    __m128i t, ct;
+    __m128i msg = _mm_load_si128((__m128i*)plaintextblk);
+    __m128i tmp = state[5];
 
-    uint8_t state_0[16];
-    uint8_t i;
-    while (l != full_block_len) {
-        xor_state_256(state, state_0);
-        i = 16;
-        while (i--) {
-            cipher[l + i] = plain[l + i] ^ state_0[i];
-        }
-        update_state_256(state, _mm_loadu_si128((__m128i * )(plain + l)));
-        l += 16;
-    }
+    //encryption
+    t  = _mm_and_si128(state[2], state[3]);
+    ct = _mm_xor_si128(msg, state[5]);
+    ct = _mm_xor_si128(ct, state[4]);
+    ct = _mm_xor_si128(ct, state[1]);
+    ct = _mm_xor_si128(ct, t);
+    _mm_store_si128((__m128i*)ciphertextblk, ct);
 
-    size_t diff = plain_len - full_block_len;
-    if (diff) {
-        uint8_t last_block[16];
-        memcpy(last_block, plain + full_block_len, diff);
-        memset(last_block + diff, 0, 16 - diff);
+    //state update function
+    state[5] = _mm_aesenc_si128(state[4],state[5]);
+    state[4] = _mm_aesenc_si128(state[3],state[4]);
+    state[3] = _mm_aesenc_si128(state[2],state[3]);
+    state[2] = _mm_aesenc_si128(state[1],state[2]);
+    state[1] = _mm_aesenc_si128(state[0],state[1]);
+    state[0] = _mm_aesenc_si128(tmp,state[0]);
 
-        xor_state_256(state, state_0);
-        i = 16;
-        while (i--) {
-            cipher[l + i] = last_block[i] ^ state_0[i];
-        }
-
-        update_state_256(state, _mm_loadu_si128((__m128i *) last_block));
-    }
+    //xor msg with state[0]
+    state[0] = _mm_xor_si128(state[0],msg);
 }
 
-void decrypt_128(__m128i *state, const uint8_t *cipher, size_t cipher_len, uint8_t *plain) {
-    size_t l = 0;
-    size_t full_block_len = (cipher_len >> 4) << 4;
+inline void decrypt_128(unsigned char *plaintextblk,
+                        const unsigned char *ciphertextblk, __m128i *state) {
+    __m128i msg = _mm_load_si128((__m128i *) ciphertextblk);
+    __m128i tmp = state[4];
 
-    uint8_t state_0[16];
-    uint8_t i;
-    while (l != full_block_len) {
-        xor_state_128(state, state_0);
-        i = 16;
-        while (i--) {
-            plain[l + i] = cipher[l + i] ^ state_0[i];
-        }
-        update_state_128(state, _mm_loadu_si128((__m128i * )(plain + l)));
-        l += 16;
-    }
+    //decryption
+    msg = _mm_xor_si128(msg, _mm_and_si128(state[2], state[3]));
+    msg = _mm_xor_si128(msg, state[4]);
+    msg = _mm_xor_si128(msg, state[1]);
 
-    size_t diff = cipher_len - full_block_len;
-    if (diff) {
-        uint8_t last_block[16];
-        memcpy(last_block, cipher + full_block_len, diff);
-        memset(last_block + diff, 0, 16 - diff);
+    _mm_store_si128((__m128i *) plaintextblk, msg);
 
-        xor_state_128(state, state_0);
-        i = 16;
-        while (i--) {
-            plain[l + i] = last_block[i] ^ state_0[i];
-        }
-        memset(plain + l + diff, 0, 16 - diff);
+    //state update function
+    state[4] = _mm_aesenc_si128(state[3], state[4]);
+    state[3] = _mm_aesenc_si128(state[2], state[3]);
+    state[2] = _mm_aesenc_si128(state[1], state[2]);
+    state[1] = _mm_aesenc_si128(state[0], state[1]);
+    state[0] = _mm_aesenc_si128(tmp, state[0]);
 
-        update_state_128(state, _mm_loadu_si128((__m128i * )(plain + l)));
-    }
+    //message is used to update the state
+    state[0] = _mm_xor_si128(state[0], msg);
 }
 
 void decrypt_128l(uint8_t *plaintextblk, const uint8_t *ciphertextblk, __m128i *state) {
@@ -370,65 +279,67 @@ void decrypt_128l(uint8_t *plaintextblk, const uint8_t *ciphertextblk, __m128i *
     state[4] = _mm_xor_si128(state[4], msg1);
 }
 
-void decrypt_256(__m128i *state, const uint8_t *cipher, size_t cipher_len, uint8_t *plain) {
-    size_t l = 0;
-    size_t full_block_len = (cipher_len >> 4) << 4;
+inline void decrypt_256(unsigned char *plaintextblk,
+                        const unsigned char *ciphertextblk, __m128i *state)
+{
+    __m128i t;
+    __m128i msg = _mm_load_si128((__m128i*)ciphertextblk);
+    __m128i tmp = state[5];
 
-    uint8_t state_0[16];
-    uint8_t i;
-    while (l != full_block_len) {
-        xor_state_256(state, state_0);
-        i = 16;
-        while (i--) {
-            plain[l + i] = cipher[l + i] ^ state_0[i];
-        }
-        update_state_256(state, _mm_loadu_si128((__m128i * )(plain + l)));
-        l += 16;
-    }
+    //decryption
+    t = _mm_and_si128(state[2], state[3]);
+    msg = _mm_xor_si128(msg, state[5]);
+    msg = _mm_xor_si128(msg, state[4]);
+    msg = _mm_xor_si128(msg, state[1]);
+    msg = _mm_xor_si128(msg, t);
+    _mm_store_si128((__m128i*)plaintextblk, msg);
 
-    size_t diff = cipher_len - full_block_len;
-    if (diff) {
-        uint8_t last_block[16];
-        memcpy(last_block, cipher + full_block_len, diff);
-        memset(last_block + diff, 0, 16 - diff);
-
-        xor_state_256(state, state_0);
-        i = 16;
-        while (i--) {
-            plain[l + i] = last_block[i] ^ state_0[i];
-        }
-        memset(plain + l + diff, 0, 16 - diff);
-
-        update_state_256(state, _mm_loadu_si128((__m128i * )(plain + l)));
-    }
+    //state update function
+    state[5] = _mm_aesenc_si128(state[4],state[5]);
+    state[4] = _mm_aesenc_si128(state[3],state[4]);
+    state[3] = _mm_aesenc_si128(state[2],state[3]);
+    state[2] = _mm_aesenc_si128(state[1],state[2]);
+    state[1] = _mm_aesenc_si128(state[0],state[1]);
+    state[0] = _mm_aesenc_si128(tmp,state[0]);
+    state[0] = _mm_xor_si128(state[0], msg);
 }
 
-void finalize_128(__m128i *state, uint64_t ad_len, uint64_t plain_len, uint8_t *tag) {
-    __m128i msgtmp;
-    uint8_t tmp[16];
-    memset(tmp, 0, 16);
+void finalize_128(unsigned long long msglen, unsigned long long adlen, unsigned char *mac, __m128i *state) {
+    int i;
 
-    ((unsigned long long *) tmp)[0] = ad_len << 3;
-    ((unsigned long long *) tmp)[1] = plain_len << 3;
-    msgtmp = _mm_load_si128((__m128i *) tmp);
+    __m128i tmp;
+    __m128i msgtmp;
+    unsigned char t[16], tt[16];
+
+    for (i = 0; i < 16; i++) tt[i] = 0;
+
+    ((unsigned long long *) tt)[0] = adlen << 3;
+    ((unsigned long long *) tt)[1] = msglen << 3;
+    msgtmp = _mm_load_si128((__m128i *) tt);
+
     msgtmp = _mm_xor_si128(msgtmp, state[3]);
 
-    uint8_t i;
-    i = 7;
-    while (i--) {
-        update_state_128(state, msgtmp);
+    for (i = 0; i < 7; i++) {
+        //state update function
+        tmp = state[4];
+        state[4] = _mm_aesenc_si128(state[3], state[4]);
+        state[3] = _mm_aesenc_si128(state[2], state[3]);
+        state[2] = _mm_aesenc_si128(state[1], state[2]);
+        state[1] = _mm_aesenc_si128(state[0], state[1]);
+        state[0] = _mm_aesenc_si128(tmp, state[0]);
+
+        //xor "msg" with state[0]
+        state[0] = _mm_xor_si128(state[0], msgtmp);
     }
 
-    uint8_t j;
-    memset(tag, 0, 16);
-    i = 5;
-    while (i--) {
-        uint8_t *st = (uint8_t * ) & state[i];
-        j = 16;
-        while (j--) {
-            tag[j] ^= st[j];
-        }
-    }
+    state[4] = _mm_xor_si128(state[4], state[3]);
+    state[4] = _mm_xor_si128(state[4], state[2]);
+    state[4] = _mm_xor_si128(state[4], state[1]);
+    state[4] = _mm_xor_si128(state[4], state[0]);
+
+    _mm_store_si128((__m128i *) t, state[4]);
+    //in this program, the mac length is assumed to be multiple of bytes
+    memcpy(mac, t, 16);
 }
 
 void finalize_128l(size_t msglen, size_t adlen, uint8_t *mac, __m128i *state) {
@@ -477,32 +388,44 @@ void finalize_128l(size_t msglen, size_t adlen, uint8_t *mac, __m128i *state) {
     memcpy(mac, t, 16);
 }
 
-void finalize_256(__m128i *state, uint64_t ad_len, uint64_t plain_len, uint8_t *tag) {
-    __m128i msgtmp;
-    uint8_t tmp[16];
-    memset(tmp, 0, 16);
+void finalize_256(unsigned long long msglen, unsigned long long adlen, unsigned char *mac, __m128i *state)
+{
+    int i;
 
-    ((unsigned long long *) tmp)[0] = ad_len << 3;
-    ((unsigned long long *) tmp)[1] = plain_len << 3;
-    msgtmp = _mm_load_si128((__m128i *) tmp);
+    __m128i  tmp;
+    __m128i  msgtmp;
+    unsigned char t[16], tt[16];
+
+    for (i = 0; i < 16; i++) tt[i] = 0;
+    ((unsigned long long*)tt)[0] = adlen  << 3;
+    ((unsigned long long*)tt)[1] = msglen << 3;
+    msgtmp = _mm_load_si128((__m128i*)tt);
+
     msgtmp = _mm_xor_si128(msgtmp, state[3]);
 
-    uint8_t i;
-    i = 7;
-    while (i--) {
-        update_state_256(state, msgtmp);
+    for (i = 0; i < 7; i++) {
+        //state update function
+        tmp = state[5];
+        state[5] = _mm_aesenc_si128(state[4],state[5]);
+        state[4] = _mm_aesenc_si128(state[3],state[4]);
+        state[3] = _mm_aesenc_si128(state[2],state[3]);
+        state[2] = _mm_aesenc_si128(state[1],state[2]);
+        state[1] = _mm_aesenc_si128(state[0],state[1]);
+        state[0] = _mm_aesenc_si128(tmp,state[0]);
+
+        //xor "msg" with state[0]
+        state[0] = _mm_xor_si128(state[0], msgtmp);
     }
 
-    uint8_t j;
-    memset(tag, 0, 16);
-    i = 6;
-    while (i--) {
-        uint8_t *st = (uint8_t * ) & state[i];
-        j = 16;
-        while (j--) {
-            tag[j] ^= st[j];
-        }
-    }
+    state[5] = _mm_xor_si128(state[5], state[4]);
+    state[5] = _mm_xor_si128(state[5], state[3]);
+    state[5] = _mm_xor_si128(state[5], state[2]);
+    state[5] = _mm_xor_si128(state[5], state[1]);
+    state[5] = _mm_xor_si128(state[5], state[0]);
+
+    _mm_store_si128((__m128i*)t, state[5]);
+    //in this program, the mac length is assumed to be multiple of bytes
+    memcpy(mac,t,16);
 }
 
 /**
@@ -650,15 +573,45 @@ void AEGIS_256_encrypt(
         const uint8_t *msg, size_t msglen,
         const uint8_t *ad, size_t adlen,
         uint8_t *tag, uint8_t *cipher
-) {
-    __m128i state[6];
-    init_state_256(state,
-                   _mm_loadu_si128((__m128i *) key), _mm_loadu_si128((__m128i * )(key + 16)),
-                   _mm_loadu_si128((__m128i *) iv), _mm_loadu_si128((__m128i * )(iv + 16))
-    );
-    process_ad_256(state, ad, adlen);
-    encrypt_256(state, msg, msglen, cipher);
-    finalize_256(state, adlen, msglen, tag);
+)
+{
+    unsigned long long i;
+    unsigned char plaintextblock[16], ciphertextblock[16];
+    __m128i aegis256_state[6];
+
+    //initialization stage
+    init_256(key, iv, aegis256_state);
+
+    //process the associated data
+    for (i = 0; (i+16) <= adlen; i += 16) {
+        encrypt_256(ad+i, ciphertextblock, aegis256_state);
+    }
+
+    //deal with the partial block of associated data
+    //in this program, we assume that the message length is multiple of bytes.
+    if (  (adlen & 0xf) != 0 )  {
+        memset(plaintextblock, 0, 16);
+        memcpy(plaintextblock, ad+i, adlen & 0xf);
+        encrypt_256(plaintextblock, ciphertextblock, aegis256_state);
+    }
+
+    //encrypt the plaintext
+    for (i = 0; (i+16) <= msglen; i += 16) {
+        encrypt_256(msg+i, cipher+i, aegis256_state);
+    }
+
+    // Deal with the partial block
+    // In this program, we assume that the message length is multiple of bytes.
+    if (  (msglen & 0xf) != 0 )  {
+        memset(plaintextblock, 0, 16);
+        memcpy(plaintextblock, msg+i, msglen & 0xf);
+        encrypt_256(plaintextblock, ciphertextblock, aegis256_state);
+        memcpy(cipher+i,ciphertextblock, msglen & 0xf);
+    }
+
+    //finalization stage, we assume that the tag length is multiple of bytes
+    finalize_256(msglen,adlen, tag, aegis256_state);
+
 }
 
 /**
@@ -681,18 +634,52 @@ uint8_t AEGIS_256_decrypt(
         const uint8_t *cipher, size_t cipherlen,
         const uint8_t *ad, size_t adlen,
         const uint8_t *tag, uint8_t *msg
-) {
-    __m128i state[6];
-    init_state_256(state,
-                   _mm_loadu_si128((__m128i *) key), _mm_loadu_si128((__m128i * )(key + 16)),
-                   _mm_loadu_si128((__m128i *) iv), _mm_loadu_si128((__m128i * )(iv + 16))
-    );
-    process_ad_256(state, ad, adlen);
-    decrypt_256(state, cipher, cipherlen, msg);
+)
+{
+    unsigned long long i;
+    unsigned char plaintextblock[16], ciphertextblock[16];
+    unsigned char check = 0;
+    __m128i aegis256_state[6];
 
+    init_256(key, iv, aegis256_state);
+
+    //process the associated data
+    for (i = 0; (i+16) <= adlen; i += 16) {
+        encrypt_256(ad+i, ciphertextblock, aegis256_state);
+    }
+
+    //deal with the partial block of associated data
+    //in this program, we assume that the message length is multiple of bytes.
+    if (  (adlen & 0xf) != 0 )  {
+        memset(plaintextblock, 0, 16);
+        memcpy(plaintextblock, ad+i, adlen & 0xf);
+        encrypt_256(plaintextblock, ciphertextblock, aegis256_state);
+    }
+
+    //decrypt the ciphertext
+    for (i = 0; (i+16) <= cipherlen; i += 16) {
+        decrypt_256(msg+i, cipher+i, aegis256_state);
+    }
+
+    // Deal with the partial block
+    // In this program, we assume that the message length is multiple of bytes.
+    if (  (cipherlen & 0xf) != 0 )  {
+        memset(ciphertextblock, 0, 16);
+        memcpy(ciphertextblock, cipher+i, cipherlen & 0xf);
+        decrypt_256(plaintextblock, ciphertextblock, aegis256_state);
+        memcpy(msg+i, plaintextblock, cipherlen & 0xf);
+
+        //need to modify the state here (because in the last block, keystream is wrongly used to update the state)
+        memset(plaintextblock, 0, cipherlen & 0xf);
+        aegis256_state[0] = _mm_xor_si128( aegis256_state[0], _mm_load_si128((__m128i*)plaintextblock)  ) ;
+    }
+
+    //we assume that the tag length is multiple of bytes
     uint8_t tag_internal[16];
-    finalize_256(state, adlen, cipherlen, tag_internal);
-    return !memcmp(tag, tag_internal, 16);
+    finalize_256(cipherlen, adlen, tag_internal, aegis256_state);
+    //verification
+    for (i = 0; i  < 16; i++) check |= (tag[i] ^ tag_internal[i]);
+    return !check;
 }
 
 /**
@@ -715,11 +702,42 @@ void AEGIS_128_encrypt(
         const uint8_t *ad, size_t adlen,
         uint8_t *tag, uint8_t *cipher
 ) {
-    __m128i state[5];
-    init_state_128(state, _mm_loadu_si128((__m128i *) key), _mm_loadu_si128((__m128i *) iv));
-    process_ad_128(state, ad, adlen);
-    encrypt_128(state, msg, msglen, cipher);
-    finalize_128(state, adlen, msglen, tag);
+    unsigned long long i;
+    unsigned char plaintextblock[16], ciphertextblock[16];
+    __m128i aegis128_state[5];
+
+    //initialization stage
+    init_128(key, iv, aegis128_state);
+
+    //process the associated data
+    for (i = 0; (i + 16) <= adlen; i += 16) {
+        encrypt_128(ad + i, ciphertextblock, aegis128_state);
+    }
+
+    //deal with the partial block of associated data
+    //in this program, we assume that the message length is multiple of bytes.
+    if ((adlen & 0xf) != 0) {
+        memset(plaintextblock, 0, 16);
+        memcpy(plaintextblock, ad + i, adlen & 0xf);
+        encrypt_128(plaintextblock, ciphertextblock, aegis128_state);
+    }
+
+    //encrypt the plaintext
+    for (i = 0; (i + 16) <= msglen; i += 16) {
+        encrypt_128(msg + i, cipher + i, aegis128_state);
+    }
+
+    // Deal with the partial block
+    // In this program, we assume that the message length is multiple of bytes.
+    if ((msglen & 0xf) != 0) {
+        memset(plaintextblock, 0, 16);
+        memcpy(plaintextblock, msg + i, msglen & 0xf);
+        encrypt_128(plaintextblock, ciphertextblock, aegis128_state);
+        memcpy(cipher + i, ciphertextblock, msglen & 0xf);
+    }
+
+    //finalization stage, we assume that the tag length is multiple of bytes
+    finalize_128(msglen, adlen, tag, aegis128_state);
 }
 
 /**
@@ -743,12 +761,49 @@ uint8_t AEGIS_128_decrypt(
         const uint8_t *ad, size_t adlen,
         const uint8_t *tag, uint8_t *msg
 ) {
-    __m128i state[5];
-    init_state_128(state, _mm_loadu_si128((__m128i *) key), _mm_loadu_si128((__m128i *) iv));
-    process_ad_128(state, ad, adlen);
-    decrypt_128(state, cipher, cipherlen, msg);
+    unsigned long long i;
+    unsigned char plaintextblock[16], ciphertextblock[16];
+    unsigned char check = 0;
+    __m128i aegis128_state[5];
 
+    init_128(key, iv, aegis128_state);
+
+    //process the associated data
+    for (i = 0; (i + 16) <= adlen; i += 16) {
+        encrypt_128(ad + i, ciphertextblock, aegis128_state);
+    }
+
+    //deal with the partial block of associated data
+    //in this program, we assume that the message length is multiple of bytes.
+    if ((adlen & 0xf) != 0) {
+        memset(plaintextblock, 0, 16);
+        memcpy(plaintextblock, ad + i, adlen & 0xf);
+        encrypt_128(plaintextblock, ciphertextblock, aegis128_state);
+    }
+
+    //decrypt the ciphertext
+    for (i = 0; (i + 16) <= cipherlen; i += 16) {
+        decrypt_128(msg + i, cipher + i, aegis128_state);
+    }
+
+    // Deal with the partial block
+    // In this program, we assume that the message length is multiple of bytes.
+    if ((cipherlen & 0xf) != 0) {
+        memset(ciphertextblock, 0, 16);
+        memcpy(ciphertextblock, cipher + i, cipherlen & 0xf);
+        decrypt_128(plaintextblock, ciphertextblock, aegis128_state);
+        memcpy(msg + i, plaintextblock, cipherlen & 0xf);
+
+        //need to modify the state here (because in the last block, keystream is wrongly used to update the state)
+        memset(plaintextblock, 0, cipherlen & 0xf);
+        aegis128_state[0] = _mm_xor_si128(aegis128_state[0], _mm_load_si128((__m128i *) plaintextblock));
+    }
+
+    //we assume that the tag length is multiple of bytes
     uint8_t tag_internal[16];
-    finalize_128(state, adlen, cipherlen, tag_internal);
-    return !memcmp(tag, tag_internal, 16);
+    finalize_128(cipherlen, adlen, tag_internal, aegis128_state);
+
+    //verification
+    for (i = 0; i < 16; i++) check |= (tag[i] ^ tag_internal[i]);
+    return !check;
 }
