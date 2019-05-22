@@ -202,7 +202,9 @@ inline void encrypt_256(const unsigned char *plaintextblk,
                         unsigned char *ciphertextblk, __m128i *state)
 {
     __m128i t, ct;
-    __m128i msg = _mm_load_si128((__m128i*)plaintextblk);
+    uint8_t tt[16];
+    for (uint8_t i=0; i < 16; i++) tt[i] = plaintextblk[i];
+    __m128i msg = _mm_load_si128((__m128i*)tt);
     __m128i tmp = state[5];
 
     //encryption
